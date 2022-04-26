@@ -1,13 +1,15 @@
 package pbf
 
 import (
-	"io"
+	"context"
 	"log"
 	"os"
 	"runtime"
 
 	cl "github.com/dmholtz/osm-ship-routing/pkg/coastline"
-	"github.com/qedus/osmpbf"
+	"github.com/paulmach/osm"
+	"github.com/paulmach/osm/osmpbf"
+	//"github.com/qedus/osmpbf"
 )
 
 type CoastlineImporter struct {
@@ -28,43 +30,44 @@ func NewImporter(pbfFile string) *CoastlineImporter {
 func (i *CoastlineImporter) Import() {
 	f, err := os.Open(i.pbfFile)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer f.Close()
 
-	d := osmpbf.NewDecoder(f)
+	scanner := osmpbf.New(context.Background(), f, runtime.GOMAXPROCS(-1))
+	defer scanner.Close()
 
-	// use more memory from the start, it is faster
-	//d.SetBufferSize(osmpbf.MaxBlobSize)
+	scanner.SkipRelations = true
 
-	// start decoding with several goroutines, it is faster
-	err = d.Start(runtime.GOMAXPROCS(-1))
-	if err != nil {
-		log.Fatal(err)
-	}
+	for scanner.Scan() {
+		switch o := scanner.Object().(type) {
 
-	for {
-		if o, err := d.Decode(); err == io.EOF {
-			break
-		} else if err != nil {
-			log.Fatal(err)
-		} else {
-			switch o := o.(type) {
-			case *osmpbf.Node:
-				i.nodeCount++
-				i.nodeIdMap[o.ID] = cl.NodeCoordinates{Lon: o.Lon, Lat: o.Lat}
-			case *osmpbf.Way:
-				if o.Tags["natural"] == "coastline" {
-					coastline := cl.NewAtomicSegment(o.NodeIDs)
+		case *osm.Node:
+			i.nodeCount++
+			i.nodeIdMap[int64(o.ID)] = cl.NodeCoordinates{Lon: o.Lon, Lat: o.Lat}
+		case *osm.Way:
+			for _, tag := range o.Tags {
+				if tag.Key == "natural" && tag.Value == "coastline" {
+					raw := make([]int64, len(o.Nodes), len(o.Nodes))
+					for i, node := range o.Nodes {
+						raw[i] = int64(node.ID)
+					}
+					coastline := cl.NewAtomicSegment([]int64(raw))
 					i.coastlines = append(i.coastlines, coastline)
 					i.coastlineCount++
+					break
 				}
-				i.wayCount++
-			case *osmpbf.Relation:
-			default:
-				log.Fatalf("unknown type %T\n", o)
 			}
+			i.wayCount++
+		case *osm.Relation:
+		default:
+			log.Fatalf("unknown type %T\n", o)
 		}
+	}
+
+	scanErr := scanner.Err()
+	if scanErr != nil {
+		panic(scanErr)
 	}
 }
 

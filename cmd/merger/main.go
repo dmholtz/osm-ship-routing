@@ -8,9 +8,9 @@ import (
 	"github.com/dmholtz/osm-ship-routing/pkg/coastline"
 )
 
-const pbfFile string = "antarctica.osm.pbf"
+//const pbfFile string = "antarctica.osm.pbf"
 
-//const pbfFile string = "/Users/david/repos/lab-course-algorithms/planet-coastlines.pbf".osm.pbf"
+const pbfFile string = "planet-coastlines.pbf"
 
 func main() {
 
