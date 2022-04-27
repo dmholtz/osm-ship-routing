@@ -5,6 +5,7 @@ type Merger struct {
 	lookUpMap  map[int64]Segment
 	polygons   []AtomicSegment
 	mergeCount int
+	unmergable int
 }
 
 func NewMerger(workList []Segment) *Merger {
@@ -41,6 +42,7 @@ func (m *Merger) Merge() {
 			m.lookUpMap[segment.Right()] = segment
 		}
 	}
+	m.unmergable = len(m.lookUpMap)
 }
 
 func (m Merger) Polygons() []AtomicSegment {
@@ -49,6 +51,10 @@ func (m Merger) Polygons() []AtomicSegment {
 
 func (m Merger) MergeCount() int {
 	return m.mergeCount
+}
+
+func (m Merger) UnmergableSegmentCount() int {
+	return m.unmergable
 }
 
 func (m Merger) lookUp(s Segment) (Segment, bool, Segment, bool) {

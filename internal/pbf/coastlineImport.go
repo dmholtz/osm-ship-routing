@@ -9,7 +9,6 @@ import (
 	cl "github.com/dmholtz/osm-ship-routing/pkg/coastline"
 	"github.com/paulmach/osm"
 	"github.com/paulmach/osm/osmpbf"
-	//"github.com/qedus/osmpbf"
 )
 
 type CoastlineImporter struct {

@@ -8,9 +8,14 @@ import (
 	"github.com/dmholtz/osm-ship-routing/pkg/coastline"
 )
 
-//const pbfFile string = "antarctica.osm.pbf"
+const pbfFile string = "antarctica.osm.pbf"
+const geojsonFile string = "antarctica.geo.json"
 
-const pbfFile string = "planet-coastlines.pbf"
+//const pbfFile string = "central-america.osm.pbf"
+//const geojsonFile string = "central-america.geo.json"
+
+//const pbfFile string = "planet-coastlines.pbf"
+//const geojsonFile string = "planet-coastlines.geo.json"
 
 func main() {
 
@@ -31,4 +36,13 @@ func main() {
 	fmt.Printf("[TIME] Merge: %s\n", elapsed)
 	fmt.Printf("Polygon Count: %d\n", len(merger.Polygons()))
 	fmt.Printf("Merge Count: %d\n", merger.MergeCount())
+	fmt.Printf("Unmergable coastline segments: %d\n", merger.UnmergableSegmentCount())
+
+	start = time.Now()
+
+	pbf.ExportGeojson(merger.Polygons(), coastlineImporter, geojsonFile)
+
+	elapsed = time.Since(start)
+	fmt.Printf("[TIME] Export to geojson: %s\n", elapsed)
+	fmt.Printf("Exported coastlines to %s\n", geojsonFile)
 }
