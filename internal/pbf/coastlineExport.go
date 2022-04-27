@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"math"
 	"os"
+	"strconv"
 
 	cl "github.com/dmholtz/osm-ship-routing/pkg/coastline"
 	"github.com/paulmach/orb"
@@ -18,22 +19,23 @@ func ExportGeojson(coastlines []cl.AtomicSegment, importer *CoastlineImporter, f
 	fc := geojson.NewFeatureCollection()
 
 	for _, coastline := range coastlines {
-		ls := orb.Ring(make([]orb.Point, 0, len(coastline)))
+		ring := orb.Ring(make([]orb.Point, 0, len(coastline)))
 		for _, nodeId := range coastline {
-			nc, err := importer.nodeIdMap[nodeId]
-			if !err {
-				panic(nodeId)
+			nc, in := importer.nodeIdMap[nodeId]
+			if !in {
+				panic("NodeId " + strconv.FormatInt(nodeId, 10) + " not in map of imported nodes\n")
 			}
 			p := orb.Point{roundSevenPlaces(nc.Lon), roundSevenPlaces(nc.Lat)}
-			ls = append(ls, p)
+			ring = append(ring, p)
 		}
 		pol := orb.Polygon(make([]orb.Ring, 1, 1))
-		pol[0] = ls
+		pol[0] = ring
 		f := geojson.NewFeature(pol)
 		fc.Append(f)
 	}
 
 	jsonObj, _ := fc.MarshalJSON()
+	// replace json 'null' value with '{}' to ensure compatibility with geojson.io
 	jsonObj = bytes.ReplaceAll(jsonObj, []byte("null"), []byte("{}"))
 
 	wErr := os.WriteFile(filename, jsonObj, 0644)
