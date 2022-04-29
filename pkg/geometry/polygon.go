@@ -1,9 +1,6 @@
-package main
+package geometry
 
-import (
-	"fmt"
-	"math"
-)
+import "math"
 
 type Point2D struct {
 	x float64
@@ -67,45 +64,4 @@ func (p *Polygon2D) IntersectsWithRaycast(point *Point2D, start *Point2D, end *P
 	diagSlope := (end.y - start.y) / (end.x - start.x)
 
 	return raySlope >= diagSlope
-}
-
-//const pbfFile string = "antarctica.osm.pbf"
-
-const pbfFile string = "planet-coastlines.pbf"
-
-func main() {
-
-	/*
-		start := time.Now()
-
-		coastlineImporter := pbf.NewImporter(pbfFile)
-		coastlineImporter.Import()
-
-		elapsed := time.Since(start)
-		fmt.Printf("[TIME] Import: %s\n", elapsed)
-
-		start = time.Now()
-
-		merger := coastline.NewMerger(coastlineImporter.Coastlines())
-		merger.Merge()
-
-		elapsed = time.Since(start)
-		fmt.Printf("[TIME] Merge: %s\n", elapsed)
-		fmt.Printf("Polygon Count: %d\n", len(merger.Polygons()))
-		fmt.Printf("Merge Count: %d\n", merger.MergeCount())
-	*/
-	p1 := Point2D{80, 80}
-	p2 := Point2D{80, 40}
-	p3 := Point2D{100, 60}
-	p4 := Point2D{100, 10}
-	p5 := Point2D{10, 10}
-	p6 := Point2D{10, 80}
-	p7 := Point2D{80, 80}
-	testPoint := Point2D{0, 50}
-
-	points := []*Point2D{&p1, &p2, &p3, &p4, &p5, &p6, &p7}
-
-	polygon := Polygon2D{points}
-	isInPolygon := polygon.IsInPolygon(&testPoint)
-	fmt.Printf("Is inside: %t\n", isInPolygon)
 }
