@@ -101,11 +101,22 @@ func main() {
 	p5 := Point2D{10, 10}
 	p6 := Point2D{10, 80}
 	p7 := Point2D{80, 80}
-	testPoint := Point2D{0, 50}
+	testPointsInside := []Point2D{{70, 40}}
+	testPointsOutside := []Point2D{{0, 50}}
 
 	points := []*Point2D{&p1, &p2, &p3, &p4, &p5, &p6, &p7}
-
 	polygon := Polygon2D{points}
-	isInPolygon := polygon.IsInPolygon(&testPoint)
-	fmt.Printf("Is inside: %t\n", isInPolygon)
+
+	for _, testPoint := range testPointsInside {
+		isInPolygon := polygon.IsInPolygon(&testPoint)
+		if !isInPolygon {
+			panic(fmt.Sprintf("Point is declared wrongly: %v", testPoint))
+		}
+	}
+	for _, testPoint := range testPointsOutside {
+		isInPolygon := polygon.IsInPolygon(&testPoint)
+		if isInPolygon {
+			panic(fmt.Sprintf("Point is declared wrongly: %v", testPoint))
+		}
+	}
 }
