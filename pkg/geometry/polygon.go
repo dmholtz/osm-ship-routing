@@ -2,6 +2,10 @@ package geometry
 
 import "math"
 
+// mostly based on this: https://github.com/kellydunn/golang-geo/blob/master/polygon.go
+// and partly on this (not tested, very old): Locating a Point on a Spherical Surface Relative to a Spherical Polygon of Arbitrary Shape
+// the Fortran translation can maybe get removed
+
 type Polygon2D struct {
 	points []*Point2D
 }
