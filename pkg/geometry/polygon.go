@@ -10,6 +10,10 @@ type Polygon2D struct {
 	points []*Point2D
 }
 
+func NewPolygon2D(points []*Point2D) *Polygon2D {
+	return &Polygon2D{points: points}
+}
+
 type PolygonSpherical struct {
 	points []*PointSpherical
 }

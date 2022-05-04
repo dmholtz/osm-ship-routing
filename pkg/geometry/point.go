@@ -7,6 +7,10 @@ type Point2D struct {
 	y float64
 }
 
+func NewPoint2D(x, y float64) *Point2D {
+	return &Point2D{x: x, y: y}
+}
+
 type PointSpherical struct {
 	lat float64 // latitude in degree
 	lon float64 // longitude in degree
