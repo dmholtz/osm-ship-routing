@@ -43,7 +43,7 @@ type ComposedSegment struct {
 }
 
 func NewComposedSegment(leftSeg Segment, leftInverted bool, rightSeg Segment, rightInverted bool) *ComposedSegment {
-	size := leftSeg.Size() + rightSeg.Size()
+	size := leftSeg.Size() + rightSeg.Size() - 1
 
 	left := leftSeg.Left()
 	if leftInverted {
