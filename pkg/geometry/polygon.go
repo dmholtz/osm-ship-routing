@@ -60,16 +60,16 @@ func (p *Polygon) Contains(point *Point) bool {
 	start := len(p.points) - 1
 	end := 0
 
-	contains := p.IntersectsWithRaycast(point, p.points[start], p.points[end])
+	contains := p.intersectsWithRaycast(point, p.points[start], p.points[end])
 	for i := 1; i < len(p.points); i++ {
-		if p.IntersectsWithRaycast(point, p.points[i-1], p.points[i]) {
+		if p.intersectsWithRaycast(point, p.points[i-1], p.points[i]) {
 			contains = !contains
 		}
 	}
 	return contains
 }
 
-func (p *Polygon) IntersectsWithRaycast(point *Point, start *Point, end *Point) bool {
+func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) bool {
 	if start.lon > end.lon {
 		start, end = end, start
 	}
@@ -101,7 +101,7 @@ func (p *Polygon) IntersectsWithRaycast(point *Point, start *Point, end *Point) 
 	return raySlope >= diagSlope
 }
 
-func LocatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlonv []float64) int {
+func locatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlonv []float64) int {
 	var dellon float64
 	var crossCounter int
 	var polygon *Polygon
@@ -127,7 +127,7 @@ func LocatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlo
 		return 1
 	}
 
-	tlonP := TransformLon(xc.lat, xc.lon, p.lat, p.lon)
+	tlonP := transformLon(xc.lat, xc.lon, p.lat, p.lon)
 	for i := 0; i < len(polygon.points)-1; i++ {
 		vALat := polygon.points[i].lat
 		vALon := polygon.points[i].lon
@@ -140,9 +140,9 @@ func LocatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlo
 		if tlonP == tlonA {
 			strike = 1
 		} else {
-			brngAB := EastOrWest(&Point{lon: tlonA}, &Point{lon: tlonB})
-			brngAP := EastOrWest(&Point{lon: tlonA}, &Point{lon: tlonP})
-			brngPB := EastOrWest(&Point{lon: tlonP}, &Point{lon: tlonB})
+			brngAB := eastOrWest(&Point{lon: tlonA}, &Point{lon: tlonB})
+			brngAP := eastOrWest(&Point{lon: tlonA}, &Point{lon: tlonP})
+			brngPB := eastOrWest(&Point{lon: tlonP}, &Point{lon: tlonB})
 			if brngAP == brngAB && brngPB == brngAB {
 				strike = 1
 			}
@@ -151,14 +151,14 @@ func LocatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlo
 			if p.lat == vALat && p.lon == vALon {
 				return 2 // P lies on a vertex of S
 			}
-			tlon_X := TransformLon(vALat, vALon, xc.lat, xc.lon)
-			tlon_B := TransformLon(vALat, vALon, vBLat, vBLon)
-			tlon_P := TransformLon(vALat, vALon, p.lat, p.lon)
+			tlon_X := transformLon(vALat, vALon, xc.lat, xc.lon)
+			tlon_B := transformLon(vALat, vALon, vBLat, vBLon)
+			tlon_P := transformLon(vALat, vALon, p.lat, p.lon)
 			if tlon_P == tlon_B {
 				return 2 // P lies on side of S
 			}
-			brng_BX := EastOrWest(&Point{lon: tlon_B}, &Point{lon: tlon_X})
-			brng_BP := EastOrWest(&Point{lon: tlon_B}, &Point{lon: tlon_X})
+			brng_BX := eastOrWest(&Point{lon: tlon_B}, &Point{lon: tlon_X})
+			brng_BP := eastOrWest(&Point{lon: tlon_B}, &Point{lon: tlon_X})
 			if brng_BX == -brng_BP {
 				crossCounter++
 			}
@@ -171,7 +171,7 @@ func LocatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlo
 }
 
 // Determine the 'longitude' of a Point Q in a geographic coordinate system for which point P acts as a 'north pole'
-func TransformLon(plat, plon, qlat, qlon float64) float64 {
+func transformLon(plat, plon, qlat, qlon float64) float64 {
 	dtr := math.Pi / 180.0
 	if plat == 90 {
 		return qlon
@@ -183,7 +183,7 @@ func TransformLon(plat, plon, qlat, qlon float64) float64 {
 }
 
 // Determine if the shorted path form c to d is east or west
-func EastOrWest(c *Point, d *Point) int {
+func eastOrWest(c *Point, d *Point) int {
 	delta := d.lon - c.lon
 	if delta > 180 {
 		delta -= 360
