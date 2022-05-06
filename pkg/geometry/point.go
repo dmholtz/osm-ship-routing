@@ -2,54 +2,45 @@ package geometry
 
 import "math"
 
-type Point2D struct {
-	x float64
-	y float64
-}
-
-func NewPoint2D(x, y float64) *Point2D {
-	return &Point2D{x: x, y: y}
-}
-
-type PointSpherical struct {
+type Point struct {
 	lat float64 // latitude in degree
 	lon float64 // longitude in degree
 }
 
-func NewPoint(lat, lon float64) *PointSpherical {
-	return &PointSpherical{lat: lat, lon: lon}
+func NewPoint(lat, lon float64) *Point {
+	return &Point{lat: lat, lon: lon}
 }
 
 // TODO Testing:  For the Cartesian Coordinates (1, 2, 3), the Spherical-Equivalent Coordinates are (√(14), 36.7°, 63.4°).
 // TODO: Avoid spherical trigonometrical computaitons by first checking the bounding box (cf. some algorithms for polygon on a sphere)
 
 // Latitude in radian
-func (p *PointSpherical) Phi() float64 {
+func (p *Point) Phi() float64 {
 	return p.lat * math.Pi / 180 // latitude in radian
 }
 
 // Longitude in radian
-func (p *PointSpherical) Lambda() float64 {
+func (p *Point) Lambda() float64 {
 	return p.lon * math.Pi / 180 // longitude in radian
 }
 
-func (p *PointSpherical) X() float64 {
+func (p *Point) X() float64 {
 	R := 6371e3 // earth radius
 	return R * math.Sin(p.Phi()) * math.Cos(p.Lambda())
 }
 
-func (p *PointSpherical) Y() float64 {
+func (p *Point) Y() float64 {
 	R := 6371e3 // earth radius
 	return R * math.Sin(p.Phi()) * math.Sin(p.Lambda())
 }
 
-func (p *PointSpherical) Z() float64 {
+func (p *Point) Z() float64 {
 	R := 6371e3 // earth radius
 	return R * math.Cos(p.Phi())
 }
 
 // The great circle distance
-func (p *PointSpherical) Haversine(point *PointSpherical) float64 {
+func (p *Point) Haversine(point *Point) float64 {
 	R := 6371e3 // earth radius
 	phi1 := p.lat * math.Pi / 180
 	phi2 := point.lat * math.Pi / 180

@@ -1,7 +1,6 @@
 package geometry
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -65,67 +64,8 @@ var pointOutsideCurvedArea []float64 = []float64{
 	-76.88077457250164, -17.9296875,
 }
 
-func TestPolygonTest(t *testing.T) {
-	t.Parallel()
-
-	p1 := Point2D{80, 80}
-	fmt.Println(p1)
-	p2 := Point2D{80, 40}
-	p3 := Point2D{100, 60}
-	p4 := Point2D{100, 10}
-	p5 := Point2D{10, 10}
-	p6 := Point2D{10, 80}
-	p7 := Point2D{80, 80}
-	testPointsInside := []Point2D{{70, 40}}
-	testPointsOutside := []Point2D{{0, 50}}
-
-	points := []*Point2D{&p1, &p2, &p3, &p4, &p5, &p6, &p7}
-	polygon := Polygon2D{points}
-
-	for _, testPoint := range testPointsInside {
-		isInPolygon := polygon.IsInPolygon(&testPoint)
-		if !isInPolygon {
-			t.Errorf("want 'isInPolygon==true', got 'isInPolygon==%t' for point %v", isInPolygon, testPoint)
-		}
-	}
-	for _, testPoint := range testPointsOutside {
-		isInPolygon := polygon.IsInPolygon(&testPoint)
-		if isInPolygon {
-			t.Errorf("want 'isInPolygon==false', got 'isInPolygon==%t' for point %v", isInPolygon, testPoint)
-		}
-	}
-}
-
-func TestSphericalPolygonTest(t *testing.T) {
-	t.Parallel()
-
-	p1 := NewPoint(-75, 0)
-	p2 := NewPoint(-75, 90)
-	p3 := NewPoint(-75, 180)
-	p4 := NewPoint(-75, -90)
-
-	polygon := NewPolygon([]*PointSpherical{p1, p2, p3, p4, p1})
-
-	testPointsInside := []*PointSpherical{NewPoint(-80, 5)}
-	testPointsOutside := []*PointSpherical{NewPoint(-60, 5)}
-
-	for _, testPoint := range testPointsInside {
-		isInPolygon := polygon.Contains(testPoint)
-		if false && !isInPolygon {
-			t.Errorf("want 'isInPolygon==true', got 'isInPolygon==%t' for point %v", isInPolygon, testPoint)
-		}
-	}
-
-	for _, testPoint := range testPointsOutside {
-		isInPolygon := polygon.Contains(testPoint)
-		if false && isInPolygon {
-			t.Errorf("want 'isInPolygon==false', got 'isInPolygon==%t' for point %v", isInPolygon, testPoint)
-		}
-	}
-}
-
 func TestPointInPolygon(t *testing.T) {
-	bruneiPoints := make([]*PointSpherical, len(brunei))
+	bruneiPoints := make([]*Point, len(brunei))
 	for i := range brunei {
 		bruneiPoints[i] = NewPoint(brunei[i][0], brunei[i][1])
 	}
@@ -134,7 +74,7 @@ func TestPointInPolygon(t *testing.T) {
 		t.Errorf("Point should lie in polygon, but isn't")
 	}
 
-	antarctisPoints := make([]*PointSpherical, len(lowRenderedAntarctis))
+	antarctisPoints := make([]*Point, len(lowRenderedAntarctis))
 	for i := range lowRenderedAntarctis {
 		antarctisPoints[i] = NewPoint(lowRenderedAntarctis[i][0], lowRenderedAntarctis[i][1])
 	}
@@ -145,7 +85,7 @@ func TestPointInPolygon(t *testing.T) {
 }
 
 func TestPointNotInPolygon(t *testing.T) {
-	bruneiPoints := make([]*PointSpherical, len(brunei))
+	bruneiPoints := make([]*Point, len(brunei))
 	for i := range brunei {
 		bruneiPoints[i] = NewPoint(brunei[i][0], brunei[i][1])
 	}
@@ -154,7 +94,7 @@ func TestPointNotInPolygon(t *testing.T) {
 		t.Errorf("Point should not lie in polygon, but does so")
 	}
 
-	antarctisPoints := make([]*PointSpherical, len(lowRenderedAntarctis))
+	antarctisPoints := make([]*Point, len(lowRenderedAntarctis))
 	for i := range lowRenderedAntarctis {
 		antarctisPoints[i] = NewPoint(lowRenderedAntarctis[i][0], lowRenderedAntarctis[i][1])
 	}
@@ -168,7 +108,7 @@ func TestPointNotInPolygon(t *testing.T) {
 }
 
 func TestPointInCurvedPolygon(t *testing.T) {
-	points := make([]*PointSpherical, len(curvedArea))
+	points := make([]*Point, len(curvedArea))
 	for i := range curvedArea {
 		points[i] = NewPoint(curvedArea[i][0], curvedArea[i][1])
 	}

@@ -6,38 +6,30 @@ import "math"
 // and partly on this (not tested, very old): Locating a Point on a Spherical Surface Relative to a Spherical Polygon of Arbitrary Shape
 // the Fortran translation can maybe get removed
 
-type Polygon2D struct {
-	points []*Point2D
+type Polygon struct {
+	points []*Point
 }
 
-func NewPolygon2D(points []*Point2D) *Polygon2D {
-	return &Polygon2D{points: points}
+func NewPolygon(points []*Point) *Polygon {
+	return &Polygon{points: points}
 }
 
-type PolygonSpherical struct {
-	points []*PointSpherical
-}
-
-func NewPolygon(points []*PointSpherical) *PolygonSpherical {
-	return &PolygonSpherical{points: points}
-}
-
-func (p *PolygonSpherical) Points() []*PointSpherical {
+func (p *Polygon) Points() []*Point {
 	return p.points
 }
 
-func (p *PolygonSpherical) Add(point *PointSpherical) {
+func (p *Polygon) Add(point *Point) {
 	p.points = append(p.points, point)
 }
 
-func (p *PolygonSpherical) IsClosed() bool {
+func (p *Polygon) IsClosed() bool {
 	if len(p.points) < 3 || p.points[0].lat != p.points[len(p.points)-1].lat || p.points[0].lon != p.points[len(p.points)-1].lon {
 		return false
 	}
 	return true
 }
 
-func (p *PolygonSpherical) BoundingBox() (float64, float64, float64, float64) {
+func (p *Polygon) BoundingBox() (float64, float64, float64, float64) {
 	var phiNorth, phiSouth, lambdaWest, lambdaEast float64
 	phiNorth = p.points[0].Phi()
 	phiSouth = p.points[0].Phi()
@@ -60,7 +52,7 @@ func (p *PolygonSpherical) BoundingBox() (float64, float64, float64, float64) {
 	return phiNorth, phiSouth, lambdaWest, lambdaEast
 }
 
-func (p *PolygonSpherical) Contains(point *PointSpherical) bool {
+func (p *Polygon) Contains(point *Point) bool {
 	if !p.IsClosed() {
 		return false
 	}
@@ -77,7 +69,7 @@ func (p *PolygonSpherical) Contains(point *PointSpherical) bool {
 	return contains
 }
 
-func (p *PolygonSpherical) IntersectsWithRaycast(point *PointSpherical, start *PointSpherical, end *PointSpherical) bool {
+func (p *Polygon) IntersectsWithRaycast(point *Point, start *Point, end *Point) bool {
 	if start.lon > end.lon {
 		start, end = end, start
 	}
@@ -109,65 +101,10 @@ func (p *PolygonSpherical) IntersectsWithRaycast(point *PointSpherical, start *P
 	return raySlope >= diagSlope
 }
 
-func (p *Polygon2D) IsInPolygon(point *Point2D) bool {
-	// TODO: check if closed
-	start := len(p.points) - 1
-	end := 0
-
-	contains := p.IntersectsWithRaycast(point, p.points[start], p.points[end])
-
-	for i := 1; i < len(p.points); i++ {
-		if p.IntersectsWithRaycast(point, p.points[i-1], p.points[i]) {
-			contains = !contains
-		}
-	}
-
-	return contains
-}
-
-func (p *Polygon2D) IntersectsWithRaycast(point *Point2D, start *Point2D, end *Point2D) bool {
-	// ensure that first point as a lower y coordinate than second point
-	// is this necessary???
-	if start.y > end.y {
-		// switch points
-		start, end = end, start
-	}
-
-	for point.y == start.y || point.y == end.y {
-		newY := math.Nextafter(point.y, math.Inf(1))
-		point = &Point2D{point.x, newY}
-	}
-
-	if point.y < start.y || point.y > end.y {
-		return false
-	}
-
-	if start.x > end.x {
-		if point.x > start.x {
-			return false
-		}
-		if point.x < end.x {
-			return true
-		}
-	} else {
-		if point.x > end.x {
-			return false
-		}
-		if point.x < start.x {
-			return true
-		}
-	}
-
-	raySlope := (point.y - start.y) / (point.x - start.x)
-	diagSlope := (end.y - start.y) / (end.x - start.x)
-
-	return raySlope >= diagSlope
-}
-
-func LocatePointRelBoundary(p *PointSpherical, xc *PointSpherical, boundary int64, nv_c int64, tlonv []float64) int {
+func LocatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlonv []float64) int {
 	var dellon float64
 	var crossCounter int
-	var polygon *PolygonSpherical
+	var polygon *Polygon
 	var transformedLon []float64
 	if boundary == 0 {
 		panic("Boundary not defined")
@@ -203,9 +140,9 @@ func LocatePointRelBoundary(p *PointSpherical, xc *PointSpherical, boundary int6
 		if tlonP == tlonA {
 			strike = 1
 		} else {
-			brngAB := EastOrWest(&PointSpherical{lon: tlonA}, &PointSpherical{lon: tlonB})
-			brngAP := EastOrWest(&PointSpherical{lon: tlonA}, &PointSpherical{lon: tlonP})
-			brngPB := EastOrWest(&PointSpherical{lon: tlonP}, &PointSpherical{lon: tlonB})
+			brngAB := EastOrWest(&Point{lon: tlonA}, &Point{lon: tlonB})
+			brngAP := EastOrWest(&Point{lon: tlonA}, &Point{lon: tlonP})
+			brngPB := EastOrWest(&Point{lon: tlonP}, &Point{lon: tlonB})
 			if brngAP == brngAB && brngPB == brngAB {
 				strike = 1
 			}
@@ -220,8 +157,8 @@ func LocatePointRelBoundary(p *PointSpherical, xc *PointSpherical, boundary int6
 			if tlon_P == tlon_B {
 				return 2 // P lies on side of S
 			}
-			brng_BX := EastOrWest(&PointSpherical{lon: tlon_B}, &PointSpherical{lon: tlon_X})
-			brng_BP := EastOrWest(&PointSpherical{lon: tlon_B}, &PointSpherical{lon: tlon_X})
+			brng_BX := EastOrWest(&Point{lon: tlon_B}, &Point{lon: tlon_X})
+			brng_BP := EastOrWest(&Point{lon: tlon_B}, &Point{lon: tlon_X})
 			if brng_BX == -brng_BP {
 				crossCounter++
 			}
@@ -246,7 +183,7 @@ func TransformLon(plat, plon, qlat, qlon float64) float64 {
 }
 
 // Determine if the shorted path form c to d is east or west
-func EastOrWest(c *PointSpherical, d *PointSpherical) int {
+func EastOrWest(c *Point, d *Point) int {
 	delta := d.lon - c.lon
 	if delta > 180 {
 		delta -= 360
