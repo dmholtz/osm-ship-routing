@@ -1,6 +1,8 @@
 package grid
 
 import (
+	"sync"
+
 	"github.com/dmholtz/osm-ship-routing/pkg/geometry"
 	gr "github.com/dmholtz/osm-ship-routing/pkg/graph"
 )
@@ -42,29 +44,41 @@ func (sgg *SphereGridGraph) DistributeNodes() {
 }
 
 func (sgg *SphereGridGraph) LandWaterTest(polygons []geometry.Polygon) {
-	sgg.isWater = make([]bool, sgg.GridGraph.NodeCount())
+	sgg.isWater = make([]bool, sgg.GridGraph.NodeCount(), sgg.GridGraph.NodeCount())
 
 	// pre-compute bounding boxes for every polygon
-	bboxes := make([]geometry.BoundingBox, 0)
-	for _, polygon := range polygons {
-		bbox := polygon.BoundingBox()
-		bboxes = append(bboxes, bbox)
-	}
+	bboxes := make([]geometry.BoundingBox, len(polygons), len(polygons))
 
+	var wg sync.WaitGroup
+	for i, polygon := range polygons {
+		wg.Add(1)
+		go func(i int, polygon geometry.Polygon) {
+			bbox := polygon.BoundingBox()
+			bboxes[i] = bbox
+			wg.Done()
+		}(i, polygon)
+	}
+	wg.Wait()
+
+	wg.Add(sgg.GridGraph.NodeCount())
 	for nodeId := 0; nodeId < sgg.GridGraph.NodeCount(); nodeId++ {
-		sgg.isWater[nodeId] = true
-		testPoint := geometry.NewPoint(sgg.GridGraph.GetNode(nodeId).Lat, sgg.GridGraph.GetNode(nodeId).Lon)
-		for i, pol := range polygons {
-			// roughly check, whether the point is contained in the bounding box of the polygon
-			if bboxes[i].Contains(*testPoint) {
-				// precisely check, whether the polygon contains the point
-				if pol.Contains(testPoint) {
-					sgg.isWater[nodeId] = false
-					break
+		go func(nodeId int) {
+			sgg.isWater[nodeId] = true
+			testPoint := geometry.NewPoint(sgg.GridGraph.GetNode(nodeId).Lat, sgg.GridGraph.GetNode(nodeId).Lon)
+			for i, pol := range polygons {
+				// roughly check, whether the point is contained in the bounding box of the polygon
+				if bboxes[i].Contains(*testPoint) {
+					// precisely check, whether the polygon contains the point
+					if pol.Contains(testPoint) {
+						sgg.isWater[nodeId] = false
+						break
+					}
 				}
 			}
-		}
+			wg.Done()
+		}(nodeId)
 	}
+	wg.Wait()
 
 	// invert map (just for demo)
 	for i := range sgg.isWater {
