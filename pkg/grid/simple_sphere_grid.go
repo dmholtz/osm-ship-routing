@@ -1,6 +1,7 @@
 package grid
 
 import (
+	"github.com/dmholtz/osm-ship-routing/pkg/geometry"
 	gr "github.com/dmholtz/osm-ship-routing/pkg/graph"
 )
 
@@ -18,42 +19,45 @@ func NewSphereGridGraph(nLon int, nLat int) *SphereGridGraph {
 	if nLat < 2 {
 		panic(nLat)
 	}
+	alg := gr.AdjacencyListGraph{}
+	sgg := SphereGridGraph{nLon: nLon, nLat: nLat, GridGraph: &alg}
+	return &sgg
+}
 
-	alg := &gr.AdjacencyListGraph{}
-	sgg := SphereGridGraph{nLon: nLon, nLat: nLat, GridGraph: alg}
-
+func (sgg *SphereGridGraph) DistributeNodes() {
 	lat := LatMin
 	lon := LonMin
 
-	dLat := (LatMax - LatMin) / (float64(nLat) - 1)
-	dLon := (LonMax - LonMin) / float64(nLon)
-	for iLat := 0; iLat < nLat; iLat++ {
-		for iLon := 0; iLon < nLon; iLon++ {
-			alg.AddNode(gr.Node{Lon: lon, Lat: lat})
+	dLat := (LatMax - LatMin) / (float64(sgg.nLat) - 1)
+	dLon := (LonMax - LonMin) / float64(sgg.nLon)
+	for iLat := 0; iLat < sgg.nLat; iLat++ {
+		for iLon := 0; iLon < sgg.nLon; iLon++ {
+			sgg.GridGraph.AddNode(gr.Node{Lon: lon, Lat: lat})
 			lon += dLon
 		}
 		lon = LonMin
 		lat += dLat
 	}
+}
 
-	// compute edges
-	for nodeId := 0; nodeId < alg.NodeCount(); nodeId++ {
+func (sgg *SphereGridGraph) CreateEdges(polygons []geometry.Polygon) {
+	for nodeId := 0; nodeId < sgg.GridGraph.NodeCount(); nodeId++ {
 		neighbors := sgg.neighborsOf(nodeId)
 		for _, neighbor := range neighbors {
-			lat = sgg.GridGraph.GetNode(nodeId).Lat
-			lon = sgg.GridGraph.GetNode(nodeId).Lon
-			if (lat < 20) || (lat > 70) || (lon < -30) || (lon > 10) {
-				// todo: point in polygon test
-				// for each point, determine its four closest neighbors
-				// make the polygon test for both points: if both are in water, introduce an edge
-				edge := gr.Edge{From: nodeId, To: neighbor, Distance: 1} // todo: compute distance
-				sgg.GridGraph.AddEdge(edge)
-			}
+			lat := sgg.GridGraph.GetNode(nodeId).Lat
+			lon := sgg.GridGraph.GetNode(nodeId).Lon
 
+			from := geometry.NewPoint(lat, lon)
+			to := geometry.NewPoint(sgg.GridGraph.GetNode(neighbor).Lat, sgg.GridGraph.GetNode(neighbor).Lon)
+
+			for _, pol := range polygons {
+				if !(!pol.Contains(from) && !pol.Contains(to)) {
+					edge := gr.Edge{From: nodeId, To: neighbor, Distance: 1} // todo: compute distance
+					sgg.GridGraph.AddEdge(edge)
+				}
+			}
 		}
 	}
-
-	return &sgg
 }
 
 func (sgg *SphereGridGraph) neighborsOf(nodeId int) []int {
