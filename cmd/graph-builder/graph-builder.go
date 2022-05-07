@@ -2,31 +2,77 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"time"
 
 	"github.com/dmholtz/osm-ship-routing/pkg/geometry"
 	"github.com/dmholtz/osm-ship-routing/pkg/grid"
+	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/geojson"
 )
 
-const density = 80
+const density = 40
 
 func main() {
 
-	var polygons1 [][][]float64 = [][][]float64{
-		{
-			{-78.34941069014627, -30.234375},
-			{-77.76758238272801, -57.65624999999999},
-			{-75.67219739055291, -126.91406249999999},
-			{-81.03861703916249, -163.4765625},
-			{-80.05804956215623, 160.3125},
-			{-69.162557908105, 149.0625},
-			{-71.41317683396565, 11.6015625},
-			{-78.34941069014627, -30.234375},
-		},
-	}
-	polygons1 = polygons1
+	//arg := africPolygons()
+	//arg := loadGeoJsonPolygons("antarctica.geo.json")
+	arg := loadGeoJsonPolygons("planet-coastlines.geo.json")
 
-	var polygons [][][]float64 = [][][]float64{
+	sgg := grid.NewSphereGridGraph(2*density, density)
+
+	start := time.Now()
+	sgg.DistributeNodes()
+	elapsed := time.Since(start)
+	fmt.Printf("[TIME] Distribute Nodes on grid: %s\n", elapsed)
+
+	start = time.Now()
+	sgg.LandWaterTest(arg)
+	elapsed = time.Since(start)
+	fmt.Printf("[TIME] Land / Water test: %s\n", elapsed)
+
+	start = time.Now()
+	sgg.CreateEdges()
+	elapsed = time.Since(start)
+	fmt.Printf("[TIME] Create Edges: %s\n", elapsed)
+
+	jsonObj, err := json.Marshal(sgg.GridGraph)
+	if err != nil {
+		panic(err)
+	}
+
+	wErr := os.WriteFile("graph.json", jsonObj, 0644)
+	if wErr != nil {
+		panic(err)
+	}
+}
+
+func loadGeoJsonPolygons(file string) []geometry.Polygon {
+	json, err := os.ReadFile(file)
+	if err != nil {
+		panic(err)
+	}
+
+	polygons := make([]geometry.Polygon, 0)
+
+	fc, _ := geojson.UnmarshalFeatureCollection(json)
+	for _, f := range fc.Features {
+		pol := f.Geometry.(orb.Polygon)
+		pts := pol[0]
+
+		points := make([]*geometry.Point, 0)
+		for _, pt := range pts {
+			points = append(points, geometry.NewPoint(pt[1], pt[0]))
+		}
+		polygon := geometry.NewPolygon(points)
+		polygons = append(polygons, *polygon)
+	}
+	return polygons
+}
+
+func africPolygons() []geometry.Polygon {
+	var africa [][][]float64 = [][][]float64{
 		{
 			{
 				-4.5703125,
@@ -128,7 +174,7 @@ func main() {
 	}
 
 	arg := make([]geometry.Polygon, 0)
-	for _, pol := range polygons {
+	for _, pol := range africa {
 		myPoints := make([]*geometry.Point, 0)
 		for _, point := range pol {
 			myPoint := geometry.NewPoint(point[1], point[0])
@@ -137,18 +183,5 @@ func main() {
 		myPol := geometry.NewPolygon(myPoints)
 		arg = append(arg, *myPol)
 	}
-
-	sgg := grid.NewSphereGridGraph(2*density, density)
-	sgg.DistributeNodes()
-	sgg.CreateEdges(arg)
-
-	jsonObj, err := json.Marshal(sgg.GridGraph)
-	if err != nil {
-		panic(err)
-	}
-
-	wErr := os.WriteFile("graph.json", jsonObj, 0644)
-	if wErr != nil {
-		panic(err)
-	}
+	return arg
 }

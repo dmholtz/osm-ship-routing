@@ -9,6 +9,7 @@ type SphereGridGraph struct {
 	nLon      int // discretization of longitude, i.e number of points in [lonMin, lonMax]
 	nLat      int // discretization of latitude, i.e number of points in [latMin, latMax]
 	GridGraph gr.DynamicGraph
+	isWater   []bool
 }
 
 func NewSphereGridGraph(nLon int, nLat int) *SphereGridGraph {
@@ -20,7 +21,7 @@ func NewSphereGridGraph(nLon int, nLat int) *SphereGridGraph {
 		panic(nLat)
 	}
 	alg := gr.AdjacencyListGraph{}
-	sgg := SphereGridGraph{nLon: nLon, nLat: nLat, GridGraph: &alg}
+	sgg := SphereGridGraph{nLon: nLon, nLat: nLat, GridGraph: &alg, isWater: make([]bool, 0)}
 	return &sgg
 }
 
@@ -40,21 +41,44 @@ func (sgg *SphereGridGraph) DistributeNodes() {
 	}
 }
 
-func (sgg *SphereGridGraph) CreateEdges(polygons []geometry.Polygon) {
+func (sgg *SphereGridGraph) LandWaterTest(polygons []geometry.Polygon) {
+	sgg.isWater = make([]bool, sgg.GridGraph.NodeCount())
+
+	// pre-compute bounding boxes for every polygon
+	bboxes := make([]geometry.BoundingBox, 0)
+	for _, polygon := range polygons {
+		bbox := polygon.BoundingBox()
+		bboxes = append(bboxes, bbox)
+	}
+
+	for nodeId := 0; nodeId < sgg.GridGraph.NodeCount(); nodeId++ {
+		sgg.isWater[nodeId] = true
+		testPoint := geometry.NewPoint(sgg.GridGraph.GetNode(nodeId).Lat, sgg.GridGraph.GetNode(nodeId).Lon)
+		for i, pol := range polygons {
+			// roughly check, whether the point is contained in the bounding box of the polygon
+			if bboxes[i].Contains(*testPoint) {
+				// precisely check, whether the polygon contains the point
+				if pol.Contains(testPoint) {
+					sgg.isWater[nodeId] = false
+					break
+				}
+			}
+		}
+	}
+
+	// invert map (just for demo)
+	for i := range sgg.isWater {
+		sgg.isWater[i] = !sgg.isWater[i]
+	}
+}
+
+func (sgg *SphereGridGraph) CreateEdges() {
 	for nodeId := 0; nodeId < sgg.GridGraph.NodeCount(); nodeId++ {
 		neighbors := sgg.neighborsOf(nodeId)
 		for _, neighbor := range neighbors {
-			lat := sgg.GridGraph.GetNode(nodeId).Lat
-			lon := sgg.GridGraph.GetNode(nodeId).Lon
-
-			from := geometry.NewPoint(lat, lon)
-			to := geometry.NewPoint(sgg.GridGraph.GetNode(neighbor).Lat, sgg.GridGraph.GetNode(neighbor).Lon)
-
-			for _, pol := range polygons {
-				if !(!pol.Contains(from) && !pol.Contains(to)) {
-					edge := gr.Edge{From: nodeId, To: neighbor, Distance: 1} // todo: compute distance
-					sgg.GridGraph.AddEdge(edge)
-				}
+			if sgg.isWater[nodeId] == true && sgg.isWater[neighbor] == true {
+				edge := gr.Edge{From: nodeId, To: neighbor, Distance: 1} // todo: compute distance
+				sgg.GridGraph.AddEdge(edge)
 			}
 		}
 	}
