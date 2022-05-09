@@ -43,7 +43,7 @@ func (sgg *SphereGridGraph) DistributeNodes() {
 	}
 }
 
-func (sgg *SphereGridGraph) LandWaterTest(polygons []geometry.Polygon) {
+func (sgg *SphereGridGraph) LandWaterTest(polygons []geometry.StandardPolygon) {
 	sgg.isWater = make([]bool, sgg.GridGraph.NodeCount(), sgg.GridGraph.NodeCount())
 
 	// pre-compute bounding boxes for every polygon
@@ -52,7 +52,7 @@ func (sgg *SphereGridGraph) LandWaterTest(polygons []geometry.Polygon) {
 	var wg sync.WaitGroup
 	for i, polygon := range polygons {
 		wg.Add(1)
-		go func(i int, polygon geometry.Polygon) {
+		go func(i int, polygon geometry.StandardPolygon) {
 			bbox := polygon.BoundingBox()
 			bboxes[i] = bbox
 			wg.Done()

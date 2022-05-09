@@ -48,13 +48,13 @@ func main() {
 	}
 }
 
-func loadGeoJsonPolygons(file string) []geometry.Polygon {
+func loadGeoJsonPolygons(file string) []geometry.StandardPolygon {
 	json, err := os.ReadFile(file)
 	if err != nil {
 		panic(err)
 	}
 
-	polygons := make([]geometry.Polygon, 0)
+	polygons := make([]geometry.StandardPolygon, 0)
 
 	fc, _ := geojson.UnmarshalFeatureCollection(json)
 	for _, f := range fc.Features {
@@ -65,13 +65,13 @@ func loadGeoJsonPolygons(file string) []geometry.Polygon {
 		for _, pt := range pts {
 			points = append(points, geometry.NewPoint(pt[1], pt[0]))
 		}
-		polygon := geometry.NewPolygon(points)
+		polygon := geometry.NewStandardPolygon(points)
 		polygons = append(polygons, *polygon)
 	}
 	return polygons
 }
 
-func africPolygons() []geometry.Polygon {
+func africPolygons() []geometry.StandardPolygon {
 	var africa [][][]float64 = [][][]float64{
 		{
 			{
@@ -173,14 +173,14 @@ func africPolygons() []geometry.Polygon {
 		},
 	}
 
-	arg := make([]geometry.Polygon, 0)
+	arg := make([]geometry.StandardPolygon, 0)
 	for _, pol := range africa {
 		myPoints := make([]*geometry.Point, 0)
 		for _, point := range pol {
 			myPoint := geometry.NewPoint(point[1], point[0])
 			myPoints = append(myPoints, myPoint)
 		}
-		myPol := geometry.NewPolygon(myPoints)
+		myPol := geometry.NewStandardPolygon(myPoints)
 		arg = append(arg, *myPol)
 	}
 	return arg

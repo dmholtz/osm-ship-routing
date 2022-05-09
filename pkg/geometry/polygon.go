@@ -6,30 +6,30 @@ import "math"
 // and partly on this (not tested, very old): Locating a Point on a Spherical Surface Relative to a Spherical Polygon of Arbitrary Shape
 // the Fortran translation can maybe get removed
 
-type Polygon struct {
+type StandardPolygon struct {
 	points []*Point
 }
 
-func NewPolygon(points []*Point) *Polygon {
-	return &Polygon{points: points}
+func NewStandardPolygon(points []*Point) *StandardPolygon {
+	return &StandardPolygon{points: points}
 }
 
-func (p *Polygon) Points() []*Point {
+func (p *StandardPolygon) Points() []*Point {
 	return p.points
 }
 
-func (p *Polygon) Add(point *Point) {
+func (p *StandardPolygon) Add(point *Point) {
 	p.points = append(p.points, point)
 }
 
-func (p *Polygon) IsClosed() bool {
+func (p *StandardPolygon) IsClosed() bool {
 	if len(p.points) < 3 || p.points[0].lat != p.points[len(p.points)-1].lat || p.points[0].lon != p.points[len(p.points)-1].lon {
 		return false
 	}
 	return true
 }
 
-func (p *Polygon) BoundingBox() BoundingBox {
+func (p *StandardPolygon) BoundingBox() BoundingBox {
 	latMin, lonMin := math.Inf(1), math.Inf(1)
 	latMax, lonMax := math.Inf(-1), math.Inf(-1)
 	for _, point := range p.points {
@@ -49,7 +49,7 @@ func (p *Polygon) BoundingBox() BoundingBox {
 	return BoundingBox{LatMin: latMin, LatMax: latMax, LonMin: lonMin, LonMax: lonMax}
 }
 
-func (p *Polygon) BoundingBox_() (float64, float64, float64, float64) {
+func (p *StandardPolygon) BoundingBox_() (float64, float64, float64, float64) {
 	// TODO: don't convert to Phi / Lambda
 	var phiNorth, phiSouth, lambdaWest, lambdaEast float64
 	phiNorth = p.points[0].Phi()
@@ -74,13 +74,13 @@ func (p *Polygon) BoundingBox_() (float64, float64, float64, float64) {
 	return phiNorth, phiSouth, lambdaWest, lambdaEast
 }
 
-func (p *Polygon) BBoxContains(point *Point) bool {
+func (p *StandardPolygon) BBoxContains(point *Point) bool {
 	phiNorth, phiSouth, lambdaWest, lambdaEast := p.BoundingBox_()
 	// TODO: check how lambda is defined
 	return point.Phi() <= phiNorth && point.Phi() >= phiSouth && point.Lambda() >= lambdaEast && point.Lambda() <= lambdaWest
 }
 
-func (p *Polygon) Contains(point *Point) bool {
+func (p *StandardPolygon) Contains(point *Point) bool {
 	if !p.IsClosed() {
 		return false
 	}
@@ -97,7 +97,7 @@ func (p *Polygon) Contains(point *Point) bool {
 	return contains
 }
 
-func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) bool {
+func (p *StandardPolygon) intersectsWithRaycast(point *Point, start *Point, end *Point) bool {
 	if start.lon > end.lon {
 		start, end = end, start
 	}
@@ -132,7 +132,7 @@ func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) 
 func locatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlonv []float64) int {
 	var dellon float64
 	var crossCounter int
-	var polygon *Polygon
+	var polygon *StandardPolygon
 	var transformedLon []float64
 	if boundary == 0 {
 		panic("Boundary not defined")

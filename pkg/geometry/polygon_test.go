@@ -69,7 +69,7 @@ func TestPointInPolygon(t *testing.T) {
 	for i := range brunei {
 		bruneiPoints[i] = NewPoint(brunei[i][0], brunei[i][1])
 	}
-	bruneiArea := NewPolygon(bruneiPoints)
+	bruneiArea := NewStandardPolygon(bruneiPoints)
 	if !bruneiArea.Contains(NewPoint(coordinatesOfBruneiCapital[0], coordinatesOfBruneiCapital[1])) {
 		t.Errorf("Point should lie in polygon, but isn't")
 	}
@@ -78,7 +78,7 @@ func TestPointInPolygon(t *testing.T) {
 	for i := range lowRenderedAntarctis {
 		antarctisPoints[i] = NewPoint(lowRenderedAntarctis[i][0], lowRenderedAntarctis[i][1])
 	}
-	antarctisArea := NewPolygon(antarctisPoints)
+	antarctisArea := NewStandardPolygon(antarctisPoints)
 	if !antarctisArea.Contains(NewPoint(coordinatesInAntarctis[0], coordinatesInAntarctis[1])) {
 		t.Errorf("Point should lie in polygon, but isn't")
 	}
@@ -89,7 +89,7 @@ func TestPointNotInPolygon(t *testing.T) {
 	for i := range brunei {
 		bruneiPoints[i] = NewPoint(brunei[i][0], brunei[i][1])
 	}
-	bruneiArea := NewPolygon(bruneiPoints)
+	bruneiArea := NewStandardPolygon(bruneiPoints)
 	if bruneiArea.Contains(NewPoint(coordinatesOutsideBrunei[0], coordinatesOutsideBrunei[1])) {
 		t.Errorf("Point should not lie in polygon, but does so")
 	}
@@ -98,7 +98,7 @@ func TestPointNotInPolygon(t *testing.T) {
 	for i := range lowRenderedAntarctis {
 		antarctisPoints[i] = NewPoint(lowRenderedAntarctis[i][0], lowRenderedAntarctis[i][1])
 	}
-	antarctisArea := NewPolygon(antarctisPoints)
+	antarctisArea := NewStandardPolygon(antarctisPoints)
 	if antarctisArea.Contains(NewPoint(coordinatesOutsideAntarctis[0][0], coordinatesOutsideAntarctis[0][1])) {
 		t.Errorf("Point should not lie in polygon, but does so")
 	}
@@ -112,7 +112,7 @@ func TestPointInCurvedPolygon(t *testing.T) {
 	for i := range curvedArea {
 		points[i] = NewPoint(curvedArea[i][0], curvedArea[i][1])
 	}
-	curvedPolygon := NewPolygon(points)
+	curvedPolygon := NewStandardPolygon(points)
 
 	if curvedPolygon.Contains(NewPoint(pointOutsideCurvedArea[0], pointOutsideCurvedArea[1])) {
 		t.Errorf("Point should not lie in polygon, but does so")
