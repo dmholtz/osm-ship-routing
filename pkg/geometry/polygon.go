@@ -6,6 +6,20 @@ import "math"
 // and partly on this (not tested, very old): Locating a Point on a Spherical Surface Relative to a Spherical Polygon of Arbitrary Shape
 // the Fortran translation can maybe get removed
 
+/* Some possible interface definitions
+type Area interface {
+	Contains(point *Point) bool
+}
+
+type Polygon interface {
+	At(index int) *Point
+	Add(point *Point)
+	Size() int
+	IsClosed() bool
+	BoundingBox() BoundingBox
+}
+*/
+
 type StandardPolygon struct {
 	points []*Point
 }
@@ -18,12 +32,20 @@ func (p *StandardPolygon) Points() []*Point {
 	return p.points
 }
 
+func (p *StandardPolygon) At(index int) *Point {
+	return p.points[index]
+}
+
 func (p *StandardPolygon) Add(point *Point) {
 	p.points = append(p.points, point)
 }
 
+func (p *StandardPolygon) Size() int {
+	return len(p.points)
+}
+
 func (p *StandardPolygon) IsClosed() bool {
-	if len(p.points) < 3 || p.points[0].lat != p.points[len(p.points)-1].lat || p.points[0].lon != p.points[len(p.points)-1].lon {
+	if len(p.points) < 3 || p.At(0).lat != p.At(len(p.points)-1).lat || p.At(0).lon != p.At(len(p.points)-1).lon {
 		return false
 	}
 	return true
