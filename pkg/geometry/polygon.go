@@ -151,6 +151,107 @@ func (p *StandardPolygon) intersectsWithRaycast(point *Point, start *Point, end 
 	return raySlope >= diagSlope
 }
 
+type ValuePolygon struct {
+	points []Point
+}
+
+func NewValuePolygon(points []Point) ValuePolygon {
+	return ValuePolygon{points: points}
+}
+
+func (p ValuePolygon) Points() []Point {
+	return p.points
+}
+
+func (p ValuePolygon) At(index int) Point {
+	return p.points[index]
+}
+
+func (p ValuePolygon) Add(point Point) ValuePolygon {
+	p.points = append(p.points, point)
+	return p
+}
+
+func (p ValuePolygon) Size() int {
+	return len(p.points)
+}
+
+func (p ValuePolygon) IsClosed() bool {
+	if len(p.points) < 3 || p.At(0).lat != p.At(len(p.points)-1).lat || p.At(0).lon != p.At(len(p.points)-1).lon {
+		return false
+	}
+	return true
+}
+
+func (p ValuePolygon) BoundingBox() BoundingBox {
+	latMin, lonMin := math.Inf(1), math.Inf(1)
+	latMax, lonMax := math.Inf(-1), math.Inf(-1)
+	for _, point := range p.points {
+		if point.lat < latMin {
+			latMin = point.lat
+		}
+		if point.lat > latMax {
+			latMax = point.lat
+		}
+		if point.lon < lonMin {
+			lonMin = point.lon
+		}
+		if point.lon > lonMax {
+			lonMax = point.lon
+		}
+	}
+	return BoundingBox{LatMin: latMin, LatMax: latMax, LonMin: lonMin, LonMax: lonMax}
+}
+
+func (p ValuePolygon) Contains(point Point) bool {
+	if !p.IsClosed() {
+		return false
+	}
+
+	start := len(p.points) - 1
+	end := 0
+
+	contains := p.intersectsWithRaycast(point, p.points[start], p.points[end])
+	for i := 1; i < len(p.points); i++ {
+		if p.intersectsWithRaycast(point, p.points[i-1], p.points[i]) {
+			contains = !contains
+		}
+	}
+	return contains
+}
+
+func (p ValuePolygon) intersectsWithRaycast(point Point, start Point, end Point) bool {
+	if start.lon > end.lon {
+		start, end = end, start
+	}
+	for point.lon == start.lon || point.lon == end.lon {
+		newLon := math.Nextafter(point.lon, math.Inf(1))
+		point = Point{point.lat, newLon}
+	}
+	if point.lon < start.lon || point.lon > end.lon {
+		return false
+	}
+	if start.lat > end.lat {
+		if point.lat > start.lat {
+			return false
+		}
+		if point.lat < end.lat {
+			return true
+		}
+	} else {
+		if point.lat > end.lat {
+			return false
+		}
+		if point.lat < start.lat {
+			return true
+		}
+	}
+	raySlope := (point.lon - start.lon) / (point.lat - start.lat)
+	diagSlope := (end.lon - start.lon) / (end.lat - start.lat)
+
+	return raySlope >= diagSlope
+}
+
 func locatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlonv []float64) int {
 	var dellon float64
 	var crossCounter int
