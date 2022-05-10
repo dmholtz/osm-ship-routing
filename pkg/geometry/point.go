@@ -52,3 +52,21 @@ func (p *Point) Haversine(point *Point) float64 {
 
 	return R * c
 }
+
+// Calculate the distance with the Spherical Law of Cosines.
+// This is a roughly simpler formula (which may improve the performance).
+// In other tests however, it took a  bit longer
+func (p *Point) SphericalCosineDistance(other *Point) float64 {
+	// may be better to only calculate Phi only once for each point and store in local variable. But probably no big improvements
+	R := 6371e3 // earth radius
+	return math.Acos(math.Sin(p.Phi())*math.Sin(other.Phi())+math.Cos(p.Phi())*math.Cos(other.Phi())*math.Cos(other.Lambda()-p.Lambda())) * R
+}
+
+func (p *Point) Bearing(other *Point) float64 {
+	y := math.Sin(other.Lambda()-p.Lambda()) * math.Cos(other.Phi())
+	x := math.Cos(p.Phi())*math.Sin(other.Phi()) -
+		math.Sin(p.Phi())*math.Cos(other.Phi())*math.Cos(other.Lambda()-p.Lambda())
+	theta := math.Atan2(y, x)
+	bearing := math.Mod(theta*180/math.Pi+360, 360) // bearing in degrees
+	return bearing
+}
