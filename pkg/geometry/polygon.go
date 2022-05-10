@@ -190,9 +190,9 @@ func locatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlo
 		if tlonP == tlonA {
 			strike = 1
 		} else {
-			brngAB := eastOrWest(&Point{lon: tlonA}, &Point{lon: tlonB})
-			brngAP := eastOrWest(&Point{lon: tlonA}, &Point{lon: tlonP})
-			brngPB := eastOrWest(&Point{lon: tlonP}, &Point{lon: tlonB})
+			brngAB := eastOrWest(NewPoint(0, tlonA), NewPoint(0, tlonB))
+			brngAP := eastOrWest(NewPoint(0, tlonA), NewPoint(0, tlonP))
+			brngPB := eastOrWest(NewPoint(0, tlonP), NewPoint(0, tlonB))
 			if brngAP == brngAB && brngPB == brngAB {
 				strike = 1
 			}
@@ -207,8 +207,8 @@ func locatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlo
 			if tlon_P == tlon_B {
 				return 2 // P lies on side of S
 			}
-			brng_BX := eastOrWest(&Point{lon: tlon_B}, &Point{lon: tlon_X})
-			brng_BP := eastOrWest(&Point{lon: tlon_B}, &Point{lon: tlon_X})
+			brng_BX := eastOrWest(NewPoint(0, tlon_B), NewPoint(0, tlon_X))
+			brng_BP := eastOrWest(NewPoint(0, tlon_B), NewPoint(0, tlon_P))
 			if brng_BX == -brng_BP {
 				crossCounter++
 			}
