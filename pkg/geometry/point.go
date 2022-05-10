@@ -14,14 +14,22 @@ func NewPoint(lat, lon float64) *Point {
 // TODO Testing:  For the Cartesian Coordinates (1, 2, 3), the Spherical-Equivalent Coordinates are (√(14), 36.7°, 63.4°).
 // TODO: Avoid spherical trigonometrical computaitons by first checking the bounding box (cf. some algorithms for polygon on a sphere)
 
+func (p *Point) Lat() float64 {
+	return p.lat
+}
+
+func (p *Point) Lon() float64 {
+	return p.lon
+}
+
 // Latitude in radian
 func (p *Point) Phi() float64 {
-	return p.lat * math.Pi / 180 // latitude in radian
+	return p.Lat() * math.Pi / 180 // latitude in radian
 }
 
 // Longitude in radian
 func (p *Point) Lambda() float64 {
-	return p.lon * math.Pi / 180 // longitude in radian
+	return p.Lon() * math.Pi / 180 // longitude in radian
 }
 
 func (p *Point) X() float64 {
@@ -43,8 +51,8 @@ func (p *Point) Z() float64 {
 func (first *Point) Haversine(second *Point) float64 {
 	R := 6371e3 // earth radius
 	// one can reduce one function call/calculation by directly substraction the latitudes/longitudes and then convert to radian:
-	// (point.lat - p.lat) * math.Pi / 180
-	// (point.lon - p.lon) * math.Pi / 180
+	// (point.Lat() - p.Lat()) * math.Pi / 180
+	// (point.Lon() - p.Lon()) * math.Pi / 180
 	// But this is probably not worth to improve
 	deltaPhi := second.Phi() - first.Phi()
 	deltaLambda := second.Lambda() - first.Lambda()

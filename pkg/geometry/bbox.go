@@ -8,5 +8,5 @@ type BoundingBox struct {
 }
 
 func (bbox BoundingBox) Contains(point Point) bool {
-	return bbox.LatMin <= point.lat && point.lat <= bbox.LatMax && bbox.LonMin <= point.lon && point.lon <= bbox.LonMax
+	return bbox.LatMin <= point.Lat() && point.Lat() <= bbox.LatMax && bbox.LonMin <= point.Lon() && point.Lon() <= bbox.LonMax
 }

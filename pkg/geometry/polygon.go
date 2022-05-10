@@ -45,7 +45,7 @@ func (p *StandardPolygon) Size() int {
 }
 
 func (p *StandardPolygon) IsClosed() bool {
-	if len(p.points) < 3 || p.At(0).lat != p.At(len(p.points)-1).lat || p.At(0).lon != p.At(len(p.points)-1).lon {
+	if len(p.points) < 3 || p.At(0).Lat() != p.At(len(p.points)-1).Lat() || p.At(0).Lon() != p.At(len(p.points)-1).Lon() {
 		return false
 	}
 	return true
@@ -55,17 +55,17 @@ func (p *StandardPolygon) BoundingBox() BoundingBox {
 	latMin, lonMin := math.Inf(1), math.Inf(1)
 	latMax, lonMax := math.Inf(-1), math.Inf(-1)
 	for _, point := range p.points {
-		if point.lat < latMin {
-			latMin = point.lat
+		if point.Lat() < latMin {
+			latMin = point.Lat()
 		}
-		if point.lat > latMax {
-			latMax = point.lat
+		if point.Lat() > latMax {
+			latMax = point.Lat()
 		}
-		if point.lon < lonMin {
-			lonMin = point.lon
+		if point.Lon() < lonMin {
+			lonMin = point.Lon()
 		}
-		if point.lon > lonMax {
-			lonMax = point.lon
+		if point.Lon() > lonMax {
+			lonMax = point.Lon()
 		}
 	}
 	return BoundingBox{LatMin: latMin, LatMax: latMax, LonMin: lonMin, LonMax: lonMax}
@@ -120,33 +120,33 @@ func (p *StandardPolygon) Contains(point *Point) bool {
 }
 
 func (p *StandardPolygon) intersectsWithRaycast(point *Point, start *Point, end *Point) bool {
-	if start.lon > end.lon {
+	if start.Lon() > end.Lon() {
 		start, end = end, start
 	}
-	for point.lon == start.lon || point.lon == end.lon {
-		newLon := math.Nextafter(point.lon, math.Inf(1))
-		point = NewPoint(point.lat, newLon)
+	for point.Lon() == start.Lon() || point.Lon() == end.Lon() {
+		newLon := math.Nextafter(point.Lon(), math.Inf(1))
+		point = NewPoint(point.Lat(), newLon)
 	}
-	if point.lon < start.lon || point.lon > end.lon {
+	if point.Lon() < start.Lon() || point.Lon() > end.Lon() {
 		return false
 	}
-	if start.lat > end.lat {
-		if point.lat > start.lat {
+	if start.Lat() > end.Lat() {
+		if point.Lat() > start.Lat() {
 			return false
 		}
-		if point.lat < end.lat {
+		if point.Lat() < end.Lat() {
 			return true
 		}
 	} else {
-		if point.lat > end.lat {
+		if point.Lat() > end.Lat() {
 			return false
 		}
-		if point.lat < start.lat {
+		if point.Lat() < start.Lat() {
 			return true
 		}
 	}
-	raySlope := (point.lon - start.lon) / (point.lat - start.lat)
-	diagSlope := (end.lon - start.lon) / (end.lat - start.lat)
+	raySlope := (point.Lon() - start.Lon()) / (point.Lat() - start.Lat())
+	diagSlope := (end.Lon() - start.Lon()) / (end.Lat() - start.Lat())
 
 	return raySlope >= diagSlope
 }
@@ -177,7 +177,7 @@ func (p ValuePolygon) Size() int {
 }
 
 func (p ValuePolygon) IsClosed() bool {
-	if len(p.points) < 3 || p.At(0).lat != p.At(len(p.points)-1).lat || p.At(0).lon != p.At(len(p.points)-1).lon {
+	if len(p.points) < 3 || p.At(0).Lat() != p.At(len(p.points)-1).Lat() || p.At(0).Lon() != p.At(len(p.points)-1).Lon() {
 		return false
 	}
 	return true
@@ -187,17 +187,17 @@ func (p ValuePolygon) BoundingBox() BoundingBox {
 	latMin, lonMin := math.Inf(1), math.Inf(1)
 	latMax, lonMax := math.Inf(-1), math.Inf(-1)
 	for _, point := range p.points {
-		if point.lat < latMin {
-			latMin = point.lat
+		if point.Lat() < latMin {
+			latMin = point.Lat()
 		}
-		if point.lat > latMax {
-			latMax = point.lat
+		if point.Lat() > latMax {
+			latMax = point.Lat()
 		}
-		if point.lon < lonMin {
-			lonMin = point.lon
+		if point.Lon() < lonMin {
+			lonMin = point.Lon()
 		}
-		if point.lon > lonMax {
-			lonMax = point.lon
+		if point.Lon() > lonMax {
+			lonMax = point.Lon()
 		}
 	}
 	return BoundingBox{LatMin: latMin, LatMax: latMax, LonMin: lonMin, LonMax: lonMax}
@@ -221,33 +221,33 @@ func (p ValuePolygon) Contains(point Point) bool {
 }
 
 func (p ValuePolygon) intersectsWithRaycast(point Point, start Point, end Point) bool {
-	if start.lon > end.lon {
+	if start.Lon() > end.Lon() {
 		start, end = end, start
 	}
-	for point.lon == start.lon || point.lon == end.lon {
-		newLon := math.Nextafter(point.lon, math.Inf(1))
-		point = Point{point.lat, newLon}
+	for point.Lon() == start.Lon() || point.Lon() == end.Lon() {
+		newLon := math.Nextafter(point.Lon(), math.Inf(1))
+		point = Point{point.Lat(), newLon}
 	}
-	if point.lon < start.lon || point.lon > end.lon {
+	if point.Lon() < start.Lon() || point.Lon() > end.Lon() {
 		return false
 	}
-	if start.lat > end.lat {
-		if point.lat > start.lat {
+	if start.Lat() > end.Lat() {
+		if point.Lat() > start.Lat() {
 			return false
 		}
-		if point.lat < end.lat {
+		if point.Lat() < end.Lat() {
 			return true
 		}
 	} else {
-		if point.lat > end.lat {
+		if point.Lat() > end.Lat() {
 			return false
 		}
-		if point.lat < start.lat {
+		if point.Lat() < start.Lat() {
 			return true
 		}
 	}
-	raySlope := (point.lon - start.lon) / (point.lat - start.lat)
-	diagSlope := (end.lon - start.lon) / (end.lat - start.lat)
+	raySlope := (point.Lon() - start.Lon()) / (point.Lat() - start.Lat())
+	diagSlope := (end.Lon() - start.Lon()) / (end.Lat() - start.Lat())
 
 	return raySlope >= diagSlope
 }
@@ -260,8 +260,8 @@ func locatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlo
 	if boundary == 0 {
 		panic("Boundary not defined")
 	}
-	if p.lat == -xc.lat {
-		dellon = p.lon - xc.lon
+	if p.Lat() == -xc.Lat() {
+		dellon = p.Lon() - xc.Lon()
 		if dellon < -180 {
 			dellon += 360
 		} else if dellon > 180 {
@@ -274,17 +274,17 @@ func locatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlo
 
 	crossCounter = 0
 
-	if p.lat == xc.lat && p.lon == xc.lon {
+	if p.Lat() == xc.Lat() && p.Lon() == xc.Lon() {
 		return 1
 	}
 
-	tlonP := transformLon(xc.lat, xc.lon, p.lat, p.lon)
+	tlonP := transformLon(xc.Lat(), xc.Lon(), p.Lat(), p.Lon())
 	for i := 0; i < len(polygon.points)-1; i++ {
-		vALat := polygon.points[i].lat
-		vALon := polygon.points[i].lon
+		vALat := polygon.points[i].Lat()
+		vALon := polygon.points[i].Lon()
 		tlonA := transformedLon[i]
-		vBLat := polygon.points[i+1].lat
-		vBLon := polygon.points[i+1].lon
+		vBLat := polygon.points[i+1].Lat()
+		vBLon := polygon.points[i+1].Lon()
 		tlonB := transformedLon[i+1]
 
 		strike := 0
@@ -299,12 +299,12 @@ func locatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlo
 			}
 		}
 		if strike == 1 {
-			if p.lat == vALat && p.lon == vALon {
+			if p.Lat() == vALat && p.Lon() == vALon {
 				return 2 // P lies on a vertex of S
 			}
-			tlon_X := transformLon(vALat, vALon, xc.lat, xc.lon)
+			tlon_X := transformLon(vALat, vALon, xc.Lat(), xc.Lon())
 			tlon_B := transformLon(vALat, vALon, vBLat, vBLon)
-			tlon_P := transformLon(vALat, vALon, p.lat, p.lon)
+			tlon_P := transformLon(vALat, vALon, p.Lat(), p.Lon())
 			if tlon_P == tlon_B {
 				return 2 // P lies on side of S
 			}
@@ -335,7 +335,7 @@ func transformLon(plat, plon, qlat, qlon float64) float64 {
 
 // Determine if the shorted path form c to d is east or west
 func eastOrWest(c *Point, d *Point) int {
-	delta := d.lon - c.lon
+	delta := d.Lon() - c.Lon()
 	if delta > 180 {
 		delta -= 360
 	} else if delta < -180 {
