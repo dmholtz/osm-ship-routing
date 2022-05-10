@@ -42,12 +42,14 @@ func (p *Point) Z() float64 {
 // The great circle distance
 func (p *Point) Haversine(point *Point) float64 {
 	R := 6371e3 // earth radius
-	phi1 := p.lat * math.Pi / 180
-	phi2 := point.lat * math.Pi / 180
-	deltaPhi := (point.lat - p.lat) * math.Pi / 180
-	deltaLambda := (point.lon - p.lon) * math.Pi / 180
+	// one can reduce one function call/calculation by directly substraction the latitudes/longitudes and then convert to radian:
+	// (point.lat - p.lat) * math.Pi / 180
+	// (point.lon - p.lon) * math.Pi / 180
+	// But this is probably not worth to improve
+	deltaPhi := point.Phi() - p.Phi()
+	deltaLambda := point.Lambda() - p.Lambda()
 
-	a := math.Pow(math.Sin(deltaPhi/2), 2) + math.Cos(phi1)*math.Cos(phi2)*math.Pow(math.Sin(deltaLambda/2), 2)
+	a := math.Pow(math.Sin(deltaPhi/2), 2) + math.Cos(p.Phi())*math.Cos(point.Phi())*math.Pow(math.Sin(deltaLambda/2), 2)
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 
 	return R * c
