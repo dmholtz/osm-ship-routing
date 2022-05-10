@@ -41,11 +41,11 @@ func (p *Polygon) Add(point *Point) {
 }
 
 func (p *Polygon) Size() int {
-	return len(p.points)
+	return len(p.Points())
 }
 
 func (p *Polygon) IsClosed() bool {
-	if len(p.points) < 3 || p.At(0).Lat() != p.At(len(p.points)-1).Lat() || p.At(0).Lon() != p.At(len(p.points)-1).Lon() {
+	if p.Size() < 3 || p.At(0).Lat() != p.At(p.Size()-1).Lat() || p.At(0).Lon() != p.At(p.Size()-1).Lon() {
 		return false
 	}
 	return true
@@ -54,7 +54,7 @@ func (p *Polygon) IsClosed() bool {
 func (p *Polygon) BoundingBox() BoundingBox {
 	latMin, lonMin := math.Inf(1), math.Inf(1)
 	latMax, lonMax := math.Inf(-1), math.Inf(-1)
-	for _, point := range p.points {
+	for _, point := range p.Points() {
 		if point.Lat() < latMin {
 			latMin = point.Lat()
 		}
@@ -74,23 +74,23 @@ func (p *Polygon) BoundingBox() BoundingBox {
 func (p *Polygon) BoundingBox_() (float64, float64, float64, float64) {
 	// TODO: don't convert to Phi / Lambda
 	var phiNorth, phiSouth, lambdaWest, lambdaEast float64
-	phiNorth = p.points[0].Phi()
-	phiSouth = p.points[0].Phi()
-	lambdaWest = p.points[0].Lambda()
-	lambdaEast = p.points[0].Lambda()
-	for i := 1; i < len(p.points); i++ {
-		if phiNorth < p.points[i].Phi() {
-			phiNorth = p.points[i].Phi()
+	phiNorth = p.At(0).Phi()
+	phiSouth = p.At(0).Phi()
+	lambdaWest = p.At(0).Lambda()
+	lambdaEast = p.At(0).Lambda()
+	for i := 1; i < p.Size(); i++ {
+		if phiNorth < p.At(i).Phi() {
+			phiNorth = p.At(i).Phi()
 		}
-		if phiSouth > p.points[i].Phi() {
-			phiSouth = p.points[i].Phi()
+		if phiSouth > p.At(i).Phi() {
+			phiSouth = p.At(i).Phi()
 		}
 		// check lambda east / west definition
-		if lambdaWest < p.points[i].Lambda() {
-			lambdaWest = p.points[i].Lambda()
+		if lambdaWest < p.At(i).Lambda() {
+			lambdaWest = p.At(i).Lambda()
 		}
-		if lambdaEast > p.points[i].Lambda() {
-			lambdaEast = p.points[i].Lambda()
+		if lambdaEast > p.At(i).Lambda() {
+			lambdaEast = p.At(i).Lambda()
 		}
 	}
 	return phiNorth, phiSouth, lambdaWest, lambdaEast
@@ -107,12 +107,12 @@ func (p *Polygon) Contains(point *Point) bool {
 		return false
 	}
 
-	start := len(p.points) - 1
+	start := p.Size() - 1
 	end := 0
 
-	contains := p.intersectsWithRaycast(point, p.points[start], p.points[end])
-	for i := 1; i < len(p.points); i++ {
-		if p.intersectsWithRaycast(point, p.points[i-1], p.points[i]) {
+	contains := p.intersectsWithRaycast(point, p.At(start), p.At(end))
+	for i := 1; i < p.Size(); i++ {
+		if p.intersectsWithRaycast(point, p.At(i-1), p.At(i)) {
 			contains = !contains
 		}
 	}
@@ -178,12 +178,12 @@ func locatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlo
 	}
 
 	tlonP := transformLon(xc.Lat(), xc.Lon(), p.Lat(), p.Lon())
-	for i := 0; i < len(polygon.points)-1; i++ {
-		vALat := polygon.points[i].Lat()
-		vALon := polygon.points[i].Lon()
+	for i := 0; i < polygon.Size()-1; i++ {
+		vALat := polygon.At(i).Lat()
+		vALon := polygon.At(i).Lon()
 		tlonA := transformedLon[i]
-		vBLat := polygon.points[i+1].Lat()
-		vBLon := polygon.points[i+1].Lon()
+		vBLat := polygon.At(i + 1).Lat()
+		vBLon := polygon.At(i + 1).Lon()
 		tlonB := transformedLon[i+1]
 
 		strike := 0
