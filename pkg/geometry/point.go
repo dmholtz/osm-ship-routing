@@ -40,16 +40,16 @@ func (p *Point) Z() float64 {
 }
 
 // The great circle distance
-func (p *Point) Haversine(point *Point) float64 {
+func (first *Point) Haversine(second *Point) float64 {
 	R := 6371e3 // earth radius
 	// one can reduce one function call/calculation by directly substraction the latitudes/longitudes and then convert to radian:
 	// (point.lat - p.lat) * math.Pi / 180
 	// (point.lon - p.lon) * math.Pi / 180
 	// But this is probably not worth to improve
-	deltaPhi := point.Phi() - p.Phi()
-	deltaLambda := point.Lambda() - p.Lambda()
+	deltaPhi := second.Phi() - first.Phi()
+	deltaLambda := second.Lambda() - first.Lambda()
 
-	a := math.Pow(math.Sin(deltaPhi/2), 2) + math.Cos(p.Phi())*math.Cos(point.Phi())*math.Pow(math.Sin(deltaLambda/2), 2)
+	a := math.Pow(math.Sin(deltaPhi/2), 2) + math.Cos(first.Phi())*math.Cos(second.Phi())*math.Pow(math.Sin(deltaLambda/2), 2)
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 
 	return R * c
@@ -58,16 +58,16 @@ func (p *Point) Haversine(point *Point) float64 {
 // Calculate the distance with the Spherical Law of Cosines.
 // This is a roughly simpler formula (which may improve the performance).
 // In other tests however, it took a  bit longer
-func (p *Point) SphericalCosineDistance(other *Point) float64 {
+func (first *Point) SphericalCosineDistance(second *Point) float64 {
 	// may be better to only calculate Phi only once for each point and store in local variable. But probably no big improvements
 	R := 6371e3 // earth radius
-	return math.Acos(math.Sin(p.Phi())*math.Sin(other.Phi())+math.Cos(p.Phi())*math.Cos(other.Phi())*math.Cos(other.Lambda()-p.Lambda())) * R
+	return math.Acos(math.Sin(first.Phi())*math.Sin(second.Phi())+math.Cos(first.Phi())*math.Cos(second.Phi())*math.Cos(second.Lambda()-first.Lambda())) * R
 }
 
-func (p *Point) Bearing(other *Point) float64 {
-	y := math.Sin(other.Lambda()-p.Lambda()) * math.Cos(other.Phi())
-	x := math.Cos(p.Phi())*math.Sin(other.Phi()) -
-		math.Sin(p.Phi())*math.Cos(other.Phi())*math.Cos(other.Lambda()-p.Lambda())
+func (first *Point) Bearing(second *Point) float64 {
+	y := math.Sin(second.Lambda()-first.Lambda()) * math.Cos(second.Phi())
+	x := math.Cos(first.Phi())*math.Sin(second.Phi()) -
+		math.Sin(first.Phi())*math.Cos(second.Phi())*math.Cos(second.Lambda()-first.Lambda())
 	theta := math.Atan2(y, x)
 	bearing := math.Mod(theta*180/math.Pi+360, 360) // bearing in degrees
 	return bearing
