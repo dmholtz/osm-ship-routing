@@ -2,24 +2,24 @@ package geometry
 
 import "math"
 
-type Point struct {
-	lat float64 // latitude in degree
-	lon float64 // longitude in degree
-}
+type Point [2]float64
 
+// Create a new Point with latitude and longitude (both in degree)
 func NewPoint(lat, lon float64) *Point {
-	return &Point{lat: lat, lon: lon}
+	return &Point{lat, lon}
 }
 
 // TODO Testing:  For the Cartesian Coordinates (1, 2, 3), the Spherical-Equivalent Coordinates are (√(14), 36.7°, 63.4°).
 // TODO: Avoid spherical trigonometrical computaitons by first checking the bounding box (cf. some algorithms for polygon on a sphere)
 
+// latitude in degree
 func (p *Point) Lat() float64 {
-	return p.lat
+	return p[0]
 }
 
+// longitude in degree
 func (p *Point) Lon() float64 {
-	return p.lon
+	return p[1]
 }
 
 // Latitude in radian
