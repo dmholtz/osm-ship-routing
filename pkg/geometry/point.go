@@ -72,3 +72,16 @@ func (first *Point) Bearing(second *Point) float64 {
 	bearing := math.Mod(theta*180/math.Pi+360, 360) // bearing in degrees
 	return bearing
 }
+
+// Half-way point along a great circle path between two points
+func (first *Point) Midpoint(second *Point) *Point {
+	Bx := math.Cos(second.Phi()) * math.Cos(second.Lambda()-first.Lambda())
+	By := math.Cos(second.Phi()) * math.Sin(second.Lambda()-first.Lambda())
+	phi3 := math.Atan2(math.Sin(first.Phi())+math.Sin(second.Phi()),
+		math.Sqrt(math.Pow(math.Cos(first.Phi())+Bx, 2)+math.Pow(By, 2)))
+	lambda3 := first.Lambda() + math.Atan2(By, math.Cos(first.Phi())+Bx)
+	lat := phi3 * 180 / math.Pi
+	lon := lambda3 * 180 / math.Pi
+	return NewPoint(lat, lon)
+	// The longitude can be normalised to −180…+180 using (lon+540)%360-180
+}
