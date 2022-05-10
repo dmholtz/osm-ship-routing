@@ -20,38 +20,38 @@ type Polygon interface {
 }
 */
 
-type StandardPolygon struct {
+type Polygon struct {
 	points []*Point
 }
 
-func NewStandardPolygon(points []*Point) *StandardPolygon {
-	return &StandardPolygon{points: points}
+func NewPolygon(points []*Point) *Polygon {
+	return &Polygon{points: points}
 }
 
-func (p *StandardPolygon) Points() []*Point {
+func (p *Polygon) Points() []*Point {
 	return p.points
 }
 
-func (p *StandardPolygon) At(index int) *Point {
+func (p *Polygon) At(index int) *Point {
 	return p.points[index]
 }
 
-func (p *StandardPolygon) Add(point *Point) {
+func (p *Polygon) Add(point *Point) {
 	p.points = append(p.points, point)
 }
 
-func (p *StandardPolygon) Size() int {
+func (p *Polygon) Size() int {
 	return len(p.points)
 }
 
-func (p *StandardPolygon) IsClosed() bool {
+func (p *Polygon) IsClosed() bool {
 	if len(p.points) < 3 || p.At(0).Lat() != p.At(len(p.points)-1).Lat() || p.At(0).Lon() != p.At(len(p.points)-1).Lon() {
 		return false
 	}
 	return true
 }
 
-func (p *StandardPolygon) BoundingBox() BoundingBox {
+func (p *Polygon) BoundingBox() BoundingBox {
 	latMin, lonMin := math.Inf(1), math.Inf(1)
 	latMax, lonMax := math.Inf(-1), math.Inf(-1)
 	for _, point := range p.points {
@@ -71,7 +71,7 @@ func (p *StandardPolygon) BoundingBox() BoundingBox {
 	return BoundingBox{LatMin: latMin, LatMax: latMax, LonMin: lonMin, LonMax: lonMax}
 }
 
-func (p *StandardPolygon) BoundingBox_() (float64, float64, float64, float64) {
+func (p *Polygon) BoundingBox_() (float64, float64, float64, float64) {
 	// TODO: don't convert to Phi / Lambda
 	var phiNorth, phiSouth, lambdaWest, lambdaEast float64
 	phiNorth = p.points[0].Phi()
@@ -96,13 +96,13 @@ func (p *StandardPolygon) BoundingBox_() (float64, float64, float64, float64) {
 	return phiNorth, phiSouth, lambdaWest, lambdaEast
 }
 
-func (p *StandardPolygon) BBoxContains(point *Point) bool {
+func (p *Polygon) BBoxContains(point *Point) bool {
 	phiNorth, phiSouth, lambdaWest, lambdaEast := p.BoundingBox_()
 	// TODO: check how lambda is defined
 	return point.Phi() <= phiNorth && point.Phi() >= phiSouth && point.Lambda() >= lambdaEast && point.Lambda() <= lambdaWest
 }
 
-func (p *StandardPolygon) Contains(point *Point) bool {
+func (p *Polygon) Contains(point *Point) bool {
 	if !p.IsClosed() {
 		return false
 	}
@@ -119,7 +119,7 @@ func (p *StandardPolygon) Contains(point *Point) bool {
 	return contains
 }
 
-func (p *StandardPolygon) intersectsWithRaycast(point *Point, start *Point, end *Point) bool {
+func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) bool {
 	if start.Lon() > end.Lon() {
 		start, end = end, start
 	}
@@ -154,7 +154,7 @@ func (p *StandardPolygon) intersectsWithRaycast(point *Point, start *Point, end 
 func locatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlonv []float64) int {
 	var dellon float64
 	var crossCounter int
-	var polygon *StandardPolygon
+	var polygon *Polygon
 	var transformedLon []float64
 	if boundary == 0 {
 		panic("Boundary not defined")
