@@ -28,6 +28,7 @@ func NewSphereGridGraph(nLon int, nLat int) *SphereGridGraph {
 }
 
 func (sgg *SphereGridGraph) DistributeNodes() {
+	// TODO: Node candidates: do not include nodes on land
 	lat := LatMin
 	lon := LonMin
 
@@ -35,7 +36,7 @@ func (sgg *SphereGridGraph) DistributeNodes() {
 	dLon := (LonMax - LonMin) / float64(sgg.nLon)
 	for iLat := 0; iLat < sgg.nLat; iLat++ {
 		for iLon := 0; iLon < sgg.nLon; iLon++ {
-			sgg.GridGraph.AddNode(gr.Node{Lon: lon, Lat: lat})
+			sgg.GridGraph.AddNode(*gr.NewNode(lon, lat))
 			lon += dLon
 		}
 		lon = LonMin
@@ -64,6 +65,7 @@ func (sgg *SphereGridGraph) LandWaterTest(polygons []geometry.Polygon) {
 	for nodeId := 0; nodeId < sgg.GridGraph.NodeCount(); nodeId++ {
 		go func(nodeId int) {
 			sgg.isWater[nodeId] = true
+			// TODO rather use the pointer interface here
 			testPoint := geometry.NewPoint(sgg.GridGraph.GetNode(nodeId).Lat, sgg.GridGraph.GetNode(nodeId).Lon)
 			for i, pol := range polygons {
 				// roughly check, whether the point is contained in the bounding box of the polygon

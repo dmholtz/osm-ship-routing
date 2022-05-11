@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dmholtz/osm-ship-routing/pkg/geometry"
+	"github.com/dmholtz/osm-ship-routing/pkg/graph"
 	"github.com/dmholtz/osm-ship-routing/pkg/grid"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geojson"
@@ -17,8 +18,8 @@ const density = 40
 func main() {
 
 	//arg := africPolygons()
-	//arg := loadGeoJsonPolygons("antarctica.geo.json")
-	arg := loadGeoJsonPolygons("planet-coastlines.geo.json")
+	arg := loadGeoJsonPolygons("antarctica.geo.json")
+	//arg := loadGeoJsonPolygons("planet-coastlines.geo.json")
 
 	sgg := grid.NewSphereGridGraph(2*density, density)
 
@@ -46,17 +47,37 @@ func main() {
 	if wErr != nil {
 		panic(err)
 	}
-}
 
-func loadGeoJsonPolygons(file string) []geometry.Polygon {
-	json, err := os.ReadFile(file)
+	aag := graph.NewAdjacencyArrayFromGraph(sgg.GridGraph)
+	jsonObj, err = json.Marshal(aag)
 	if err != nil {
 		panic(err)
 	}
 
+	wErr = os.WriteFile("adjacency_array_graph.json", jsonObj, 0644)
+	if wErr != nil {
+		panic(err)
+	}
+}
+
+func loadGeoJsonPolygons(file string) []geometry.Polygon {
+
+	start := time.Now()
+	json, err := os.ReadFile(file)
+	if err != nil {
+		panic(err)
+	}
+	elapsed := time.Since(start)
+	fmt.Printf("[TIME] Read file: %s\n", elapsed)
+
 	polygons := make([]geometry.Polygon, 0)
 
+	start = time.Now()
 	fc, _ := geojson.UnmarshalFeatureCollection(json)
+	elapsed = time.Since(start)
+	fmt.Printf("[TIME] Unmarshal: %s\n", elapsed)
+
+	start = time.Now()
 	for _, f := range fc.Features {
 		pol := f.Geometry.(orb.Polygon)
 		pts := pol[0]
@@ -68,6 +89,9 @@ func loadGeoJsonPolygons(file string) []geometry.Polygon {
 		polygon := geometry.NewPolygon(points)
 		polygons = append(polygons, *polygon)
 	}
+	elapsed = time.Since(start)
+	fmt.Printf("[TIME] Convert to internal polygon type: %s\n", elapsed)
+
 	return polygons
 }
 

@@ -3,7 +3,7 @@ package graph
 // Implementation for dynamic graphs
 type AdjacencyListGraph struct {
 	Nodes     []Node
-	Edges     []outgoingEdges
+	Edges     [][]outgoingEdge
 	edgeCount int
 }
 
@@ -35,7 +35,7 @@ func (alg *AdjacencyListGraph) EdgeCount() int {
 
 func (alg *AdjacencyListGraph) AddNode(n Node) {
 	alg.Nodes = append(alg.Nodes, n)
-	alg.Edges = append(alg.Edges, make(outgoingEdges, 0))
+	alg.Edges = append(alg.Edges, make([]outgoingEdge, 0))
 }
 
 func (alg *AdjacencyListGraph) AddEdge(e Edge) {

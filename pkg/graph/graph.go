@@ -7,6 +7,10 @@ type Node struct {
 	Lat float64
 }
 
+func NewNode(lon float64, lat float64) *Node {
+	return &Node{Lon: lon, Lat: lat}
+}
+
 type Edge struct {
 	From     NodeId
 	To       NodeId
