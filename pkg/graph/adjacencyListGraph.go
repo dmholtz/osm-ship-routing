@@ -2,8 +2,8 @@ package graph
 
 // Implementation for dynamic graphs
 type AdjacencyListGraph struct {
-	nodes     []Node
-	edges     []outgoingEdges
+	Nodes     []Node
+	Edges     [][]outgoingEdge
 	edgeCount int
 }
 
@@ -11,7 +11,7 @@ func (alg *AdjacencyListGraph) GetNode(id NodeId) Node {
 	if id < 0 || id >= alg.NodeCount() {
 		panic(id)
 	}
-	return alg.nodes[id]
+	return alg.Nodes[id]
 }
 
 func (alg *AdjacencyListGraph) GetEdgesFrom(id NodeId) []Edge {
@@ -19,14 +19,14 @@ func (alg *AdjacencyListGraph) GetEdgesFrom(id NodeId) []Edge {
 		panic(id)
 	}
 	outgoingEdges := make([]Edge, 0)
-	for _, outgoingEdge := range alg.edges[id] {
+	for _, outgoingEdge := range alg.Edges[id] {
 		outgoingEdges = append(outgoingEdges, outgoingEdge.toEdge(id))
 	}
 	return outgoingEdges
 }
 
 func (alg *AdjacencyListGraph) NodeCount() int {
-	return len(alg.nodes)
+	return len(alg.Nodes)
 }
 
 func (alg *AdjacencyListGraph) EdgeCount() int {
@@ -34,8 +34,8 @@ func (alg *AdjacencyListGraph) EdgeCount() int {
 }
 
 func (alg *AdjacencyListGraph) AddNode(n Node) {
-	alg.nodes = append(alg.nodes, n)
-	alg.edges = append(alg.edges, make(outgoingEdges, 0))
+	alg.Nodes = append(alg.Nodes, n)
+	alg.Edges = append(alg.Edges, make([]outgoingEdge, 0))
 }
 
 func (alg *AdjacencyListGraph) AddEdge(e Edge) {
@@ -44,11 +44,11 @@ func (alg *AdjacencyListGraph) AddEdge(e Edge) {
 		panic(e)
 	}
 	// Check for duplicates
-	for _, outgoingEdge := range alg.edges[e.From] {
+	for _, outgoingEdge := range alg.Edges[e.From] {
 		if e.To == outgoingEdge.To {
 			panic(e)
 		}
 	}
-	alg.edges[e.From] = append(alg.edges[e.From], e.toOutgoingEdge())
+	alg.Edges[e.From] = append(alg.Edges[e.From], e.toOutgoingEdge())
 	alg.edgeCount++
 }
