@@ -13,7 +13,7 @@ import (
 	"github.com/paulmach/orb/geojson"
 )
 
-const density = 40
+const density = 20
 
 func main() {
 
@@ -21,24 +21,10 @@ func main() {
 	arg := loadGeoJsonPolygons("antarctica.geo.json")
 	//arg := loadGeoJsonPolygons("planet-coastlines.geo.json")
 
-	sgg := grid.NewSphereGridGraph(2*density, density)
+	sgg := grid.NewSimpleSphereGrid(2*density, density, arg)
 
-	start := time.Now()
-	sgg.DistributeNodes()
-	elapsed := time.Since(start)
-	fmt.Printf("[TIME] Distribute Nodes on grid: %s\n", elapsed)
-
-	start = time.Now()
-	sgg.LandWaterTest(arg)
-	elapsed = time.Since(start)
-	fmt.Printf("[TIME] Land / Water test: %s\n", elapsed)
-
-	start = time.Now()
-	sgg.CreateEdges()
-	elapsed = time.Since(start)
-	fmt.Printf("[TIME] Create Edges: %s\n", elapsed)
-
-	jsonObj, err := json.Marshal(sgg.GridGraph)
+	gridGraph := sgg.ToGraph()
+	jsonObj, err := json.Marshal(gridGraph)
 	if err != nil {
 		panic(err)
 	}
@@ -48,7 +34,7 @@ func main() {
 		panic(err)
 	}
 
-	aag := graph.NewAdjacencyArrayFromGraph(sgg.GridGraph)
+	aag := graph.NewAdjacencyArrayFromGraph(gridGraph)
 	jsonObj, err = json.Marshal(aag)
 	if err != nil {
 		panic(err)
