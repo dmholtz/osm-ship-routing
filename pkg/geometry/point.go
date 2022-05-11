@@ -9,6 +9,16 @@ func NewPoint(lat, lon float64) *Point {
 	return &Point{lat, lon}
 }
 
+func NewPointFromBearing(initialPoint *Point, bearing float64, distance float64) *Point {
+	R := 6371e3 // earth radius
+	phi := math.Asin(math.Sin(initialPoint.Phi())*math.Cos(distance/R) + math.Cos(initialPoint.Phi())*math.Sin(distance/R)*math.Cos(bearing))
+	lambda := initialPoint.Lambda() + math.Atan2(math.Sin(bearing)*math.Sin(distance/R)*math.Cos(initialPoint.Phi()),
+		math.Cos(distance/R)-math.Sin(initialPoint.Phi())*math.Sin(phi))
+	lat := phi * 180 / math.Pi
+	lon := lambda * 180 / math.Pi
+	return NewPoint(lat, lon)
+}
+
 // TODO Testing:  For the Cartesian Coordinates (1, 2, 3), the Spherical-Equivalent Coordinates are (√(14), 36.7°, 63.4°).
 // TODO: Avoid spherical trigonometrical computaitons by first checking the bounding box (cf. some algorithms for polygon on a sphere)
 
