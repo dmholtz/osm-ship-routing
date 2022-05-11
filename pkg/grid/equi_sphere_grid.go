@@ -12,7 +12,7 @@ import (
 
 type EquiSphereGrid struct {
 	nTarget    int // approximate number of points in in the grid
-	nCount     int // actual number of points in the grid
+	NumPoints  int // actual number of points in the grid
 	points     [][]geo.Point
 	isWater    []bool
 	grid2nodes map[IndexTupel]int
@@ -56,7 +56,7 @@ func NewEquiSphereGrid(n int, coastlines []geo.Polygon) *EquiSphereGrid {
 }
 
 func (esg *EquiSphereGrid) distributePoints() {
-	esg.nCount = 0
+	esg.NumPoints = 0
 	esg.points = make([][]geo.Point, 0)
 
 	a := 4.0 * math.Pi / float64(esg.nTarget)
@@ -73,14 +73,13 @@ func (esg *EquiSphereGrid) distributePoints() {
 			lat := geo.Rad2Deg(-theta + math.Pi/2)
 			lon := geo.Rad2Deg(phi - math.Pi)
 			esg.points[m] = append(esg.points[m], geo.Point{lat, lon})
-			esg.nCount++
+			esg.NumPoints++
 		}
 	}
-	fmt.Printf("Number of points: %d\n", esg.nCount)
 }
 
 func (esg *EquiSphereGrid) landWaterTest(polygons []geo.Polygon) {
-	esg.isWater = make([]bool, esg.nCount, esg.nCount)
+	esg.isWater = make([]bool, esg.NumPoints, esg.NumPoints)
 
 	// pre-compute bounding boxes for every polygon
 	bboxes := make([]geo.BoundingBox, len(polygons), len(polygons))
@@ -94,7 +93,7 @@ func (esg *EquiSphereGrid) landWaterTest(polygons []geo.Polygon) {
 	}
 	wg.Wait()
 
-	wg.Add(esg.nCount)
+	wg.Add(esg.NumPoints)
 	idx := 0
 	for _, ring := range esg.points {
 		for _, point := range ring {
