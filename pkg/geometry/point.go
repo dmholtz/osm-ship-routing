@@ -76,6 +76,7 @@ func (first *Point) SphericalCosineDistance(second *Point) float64 {
 	return math.Acos(math.Sin(first.Phi())*math.Sin(second.Phi())+math.Cos(first.Phi())*math.Cos(second.Phi())*math.Cos(second.Lambda()-first.Lambda())) * earthRadius
 }
 
+// Bearing from one point to another point in degree
 func (first *Point) Bearing(second *Point) float64 {
 	y := math.Sin(second.Lambda()-first.Lambda()) * math.Cos(second.Phi())
 	x := math.Cos(first.Phi())*math.Sin(second.Phi()) -
