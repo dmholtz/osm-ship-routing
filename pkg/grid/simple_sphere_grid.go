@@ -27,42 +27,42 @@ func NewSimpleSphereGrid(nLon int, nLat int, coastlines []geo.Polygon) *SimpleSp
 	if nLat < 2 {
 		panic(nLat)
 	}
-	sgg := SimpleSphereGrid{nLon: nLon, nLat: nLat}
+	ssg := SimpleSphereGrid{nLon: nLon, nLat: nLat}
 
 	start := time.Now()
-	sgg.distributePoints()
+	ssg.distributePoints()
 	elapsed := time.Since(start)
 	fmt.Printf("[TIME] Distribute Points on grid: %s\n", elapsed)
 
 	start = time.Now()
-	sgg.landWaterTest(coastlines)
+	ssg.landWaterTest(coastlines)
 	elapsed = time.Since(start)
 	fmt.Printf("[TIME] Land / Water test: %s\n", elapsed)
 
 	start = time.Now()
-	sgg.createNodes()
+	ssg.createNodes()
 	elapsed = time.Since(start)
 	fmt.Printf("[TIME] Create Nodes: %s\n", elapsed)
 
 	start = time.Now()
-	sgg.createEdges()
+	ssg.createEdges()
 	elapsed = time.Since(start)
 	fmt.Printf("[TIME] Create Edges: %s\n", elapsed)
 
-	return &sgg
+	return &ssg
 }
 
-func (sgg *SimpleSphereGrid) distributePoints() {
+func (ssg *SimpleSphereGrid) distributePoints() {
 	lat := LatMin
 	lon := LonMin
 
-	dLat := (LatMax - LatMin) / (float64(sgg.nLat) - 1)
-	dLon := (LonMax - LonMin) / float64(sgg.nLon)
+	dLat := (LatMax - LatMin) / (float64(ssg.nLat) - 1)
+	dLon := (LonMax - LonMin) / float64(ssg.nLon)
 
-	sgg.points = make([]geo.Point, 0)
-	for iLat := 0; iLat < sgg.nLat; iLat++ {
-		for iLon := 0; iLon < sgg.nLon; iLon++ {
-			sgg.points = append(sgg.points, geo.Point{lat, lon})
+	ssg.points = make([]geo.Point, 0)
+	for iLat := 0; iLat < ssg.nLat; iLat++ {
+		for iLon := 0; iLon < ssg.nLon; iLon++ {
+			ssg.points = append(ssg.points, geo.Point{lat, lon})
 			lon += dLon
 		}
 		lon = LonMin
@@ -70,9 +70,9 @@ func (sgg *SimpleSphereGrid) distributePoints() {
 	}
 }
 
-func (sgg *SimpleSphereGrid) landWaterTest(polygons []geo.Polygon) {
-	numPoints := len(sgg.points)
-	sgg.isWater = make([]bool, numPoints, numPoints)
+func (ssg *SimpleSphereGrid) landWaterTest(polygons []geo.Polygon) {
+	numPoints := len(ssg.points)
+	ssg.isWater = make([]bool, numPoints, numPoints)
 
 	// pre-compute bounding boxes for every polygon
 	bboxes := make([]geo.BoundingBox, len(polygons), len(polygons))
@@ -87,15 +87,15 @@ func (sgg *SimpleSphereGrid) landWaterTest(polygons []geo.Polygon) {
 	wg.Wait()
 
 	wg.Add(numPoints)
-	for idx, point := range sgg.points {
+	for idx, point := range ssg.points {
 		go func(idx int, point geo.Point) {
-			sgg.isWater[idx] = true
+			ssg.isWater[idx] = true
 			for i, polygon := range polygons {
 				// roughly check, whether the point is contained in the bounding box of the polygon
 				if bboxes[i].Contains(point) {
 					// precisely check, whether the polygon contains the point
 					if polygon.Contains(&point) {
-						sgg.isWater[idx] = false
+						ssg.isWater[idx] = false
 						break
 					}
 				}
@@ -106,65 +106,65 @@ func (sgg *SimpleSphereGrid) landWaterTest(polygons []geo.Polygon) {
 	wg.Wait()
 }
 
-func (sgg *SimpleSphereGrid) createNodes() {
-	sgg.grid2nodes = make(map[int]int)
-	sgg.nodes2grid = make([]int, 0)
-	sgg.nodes = make([]gr.Node, 0)
-	for cellId, point := range sgg.points {
-		if sgg.isWater[cellId] {
-			sgg.grid2nodes[cellId] = len(sgg.nodes)
-			sgg.nodes = append(sgg.nodes, *gr.NewNode(point.Lon(), point.Lat()))
-			sgg.nodes2grid = append(sgg.nodes2grid, cellId)
+func (ssg *SimpleSphereGrid) createNodes() {
+	ssg.grid2nodes = make(map[int]int)
+	ssg.nodes2grid = make([]int, 0)
+	ssg.nodes = make([]gr.Node, 0)
+	for cellId, point := range ssg.points {
+		if ssg.isWater[cellId] {
+			ssg.grid2nodes[cellId] = len(ssg.nodes)
+			ssg.nodes = append(ssg.nodes, *gr.NewNode(point.Lon(), point.Lat()))
+			ssg.nodes2grid = append(ssg.nodes2grid, cellId)
 		}
 	}
 }
 
-func (sgg *SimpleSphereGrid) createEdges() {
-	for nodeId, _ := range sgg.nodes {
-		cellId := sgg.nodes2grid[nodeId]
-		neighborCellIds := sgg.neighborsOf(cellId)
+func (ssg *SimpleSphereGrid) createEdges() {
+	for nodeId := range ssg.nodes {
+		cellId := ssg.nodes2grid[nodeId]
+		neighborCellIds := ssg.neighborsOf(cellId)
 		for _, neighborCellId := range neighborCellIds {
-			if neighborNodeId, ok := sgg.grid2nodes[neighborCellId]; ok {
+			if neighborNodeId, ok := ssg.grid2nodes[neighborCellId]; ok {
 				edge := gr.Edge{From: nodeId, To: neighborNodeId, Distance: 1} // todo: compute distance
-				sgg.edges = append(sgg.edges, edge)
+				ssg.edges = append(ssg.edges, edge)
 			}
 		}
 	}
 }
 
-func (sgg *SimpleSphereGrid) neighborsOf(cellId int) []int {
+func (ssg *SimpleSphereGrid) neighborsOf(cellId int) []int {
 	neighbors := make([]int, 0)
-	if cellId < sgg.nLon*(sgg.nLat-1) {
+	if cellId < ssg.nLon*(ssg.nLat-1) {
 		// northern neighbor
-		neighbors = append(neighbors, cellId+sgg.nLon)
+		neighbors = append(neighbors, cellId+ssg.nLon)
 	}
-	if cellId >= sgg.nLon {
+	if cellId >= ssg.nLon {
 		// southern neighbor
-		neighbors = append(neighbors, cellId-sgg.nLon)
+		neighbors = append(neighbors, cellId-ssg.nLon)
 	}
 
 	// western neighbor
-	if cellId%sgg.nLon != 0 {
+	if cellId%ssg.nLon != 0 {
 		neighbors = append(neighbors, cellId-1)
 	} else {
-		neighbors = append(neighbors, cellId+sgg.nLon-1)
+		neighbors = append(neighbors, cellId+ssg.nLon-1)
 	}
 
 	// eastern neighbor
-	if (cellId+1)%sgg.nLon != 0 {
+	if (cellId+1)%ssg.nLon != 0 {
 		neighbors = append(neighbors, cellId+1)
 	} else {
-		neighbors = append(neighbors, cellId-sgg.nLon+1)
+		neighbors = append(neighbors, cellId-ssg.nLon+1)
 	}
 	return neighbors
 }
 
-func (sgg *SimpleSphereGrid) ToGraph() gr.Graph {
+func (ssg *SimpleSphereGrid) ToGraph() gr.Graph {
 	alg := &gr.AdjacencyListGraph{}
-	for _, node := range sgg.nodes {
+	for _, node := range ssg.nodes {
 		alg.AddNode(node)
 	}
-	for _, edge := range sgg.edges {
+	for _, edge := range ssg.edges {
 		alg.AddEdge(edge)
 	}
 	return alg
