@@ -20,24 +20,23 @@ type Polygon interface {
 }
 */
 
-type Polygon struct {
-	points []*Point
-}
+type Polygon []*Point
 
 func NewPolygon(points []*Point) *Polygon {
-	return &Polygon{points: points}
+	p := Polygon(points)
+	return &p
 }
 
 func (p *Polygon) Points() []*Point {
-	return p.points
+	return *p
 }
 
 func (p *Polygon) At(index int) *Point {
-	return p.points[index]
+	return (*p)[index]
 }
 
 func (p *Polygon) Add(point *Point) {
-	p.points = append(p.points, point)
+	*p = append(*p, point)
 }
 
 func (p *Polygon) Size() int {
