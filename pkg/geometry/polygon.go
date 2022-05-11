@@ -70,37 +70,6 @@ func (p *Polygon) BoundingBox() BoundingBox {
 	return BoundingBox{LatMin: latMin, LatMax: latMax, LonMin: lonMin, LonMax: lonMax}
 }
 
-func (p *Polygon) BoundingBox_() (float64, float64, float64, float64) {
-	// TODO: don't convert to Phi / Lambda
-	var phiNorth, phiSouth, lambdaWest, lambdaEast float64
-	phiNorth = p.At(0).Phi()
-	phiSouth = p.At(0).Phi()
-	lambdaWest = p.At(0).Lambda()
-	lambdaEast = p.At(0).Lambda()
-	for i := 1; i < p.Size(); i++ {
-		if phiNorth < p.At(i).Phi() {
-			phiNorth = p.At(i).Phi()
-		}
-		if phiSouth > p.At(i).Phi() {
-			phiSouth = p.At(i).Phi()
-		}
-		// check lambda east / west definition
-		if lambdaWest < p.At(i).Lambda() {
-			lambdaWest = p.At(i).Lambda()
-		}
-		if lambdaEast > p.At(i).Lambda() {
-			lambdaEast = p.At(i).Lambda()
-		}
-	}
-	return phiNorth, phiSouth, lambdaWest, lambdaEast
-}
-
-func (p *Polygon) BBoxContains(point *Point) bool {
-	phiNorth, phiSouth, lambdaWest, lambdaEast := p.BoundingBox_()
-	// TODO: check how lambda is defined
-	return point.Phi() <= phiNorth && point.Phi() >= phiSouth && point.Lambda() >= lambdaEast && point.Lambda() <= lambdaWest
-}
-
 func (p *Polygon) Contains(point *Point) bool {
 	if !p.IsClosed() {
 		return false
