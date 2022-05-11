@@ -15,9 +15,7 @@ func NewPointFromBearing(initialPoint *Point, bearing float64, distance float64)
 	phi := math.Asin(math.Sin(initialPoint.Phi())*math.Cos(distance/earthRadius) + math.Cos(initialPoint.Phi())*math.Sin(distance/earthRadius)*math.Cos(bearing))
 	lambda := initialPoint.Lambda() + math.Atan2(math.Sin(bearing)*math.Sin(distance/earthRadius)*math.Cos(initialPoint.Phi()),
 		math.Cos(distance/earthRadius)-math.Sin(initialPoint.Phi())*math.Sin(phi))
-	lat := phi * 180 / math.Pi
-	lon := lambda * 180 / math.Pi
-	return NewPoint(lat, lon)
+	return NewPoint(Rad2Deg(phi), Rad2Deg(lambda))
 }
 
 // TODO Testing:  For the Cartesian Coordinates (1, 2, 3), the Spherical-Equivalent Coordinates are (√(14), 36.7°, 63.4°).
@@ -35,12 +33,12 @@ func (p *Point) Lon() float64 {
 
 // Latitude in radian
 func (p *Point) Phi() float64 {
-	return p.Lat() * math.Pi / 180 // latitude in radian
+	return Deg2Rad(p.Lat())
 }
 
 // Longitude in radian
 func (p *Point) Lambda() float64 {
-	return p.Lon() * math.Pi / 180 // longitude in radian
+	return Deg2Rad(p.Lon())
 }
 
 func (p *Point) X() float64 {
@@ -83,7 +81,7 @@ func (first *Point) Bearing(second *Point) float64 {
 	x := math.Cos(first.Phi())*math.Sin(second.Phi()) -
 		math.Sin(first.Phi())*math.Cos(second.Phi())*math.Cos(second.Lambda()-first.Lambda())
 	theta := math.Atan2(y, x)
-	bearing := math.Mod(theta*180/math.Pi+360, 360) // bearing in degrees
+	bearing := math.Mod(Rad2Deg(theta)+360, 360) // bearing in degrees
 	return bearing
 }
 
@@ -91,11 +89,9 @@ func (first *Point) Bearing(second *Point) float64 {
 func (first *Point) Midpoint(second *Point) *Point {
 	Bx := math.Cos(second.Phi()) * math.Cos(second.Lambda()-first.Lambda())
 	By := math.Cos(second.Phi()) * math.Sin(second.Lambda()-first.Lambda())
-	phi3 := math.Atan2(math.Sin(first.Phi())+math.Sin(second.Phi()),
+	phi := math.Atan2(math.Sin(first.Phi())+math.Sin(second.Phi()),
 		math.Sqrt(math.Pow(math.Cos(first.Phi())+Bx, 2)+math.Pow(By, 2)))
-	lambda3 := first.Lambda() + math.Atan2(By, math.Cos(first.Phi())+Bx)
-	lat := phi3 * 180 / math.Pi
-	lon := lambda3 * 180 / math.Pi
-	return NewPoint(lat, lon)
+	lambda := first.Lambda() + math.Atan2(By, math.Cos(first.Phi())+Bx)
+	return NewPoint(Rad2Deg(phi), Rad2Deg(lambda))
 	// The longitude can be normalised to −180…+180 using (lon+540)%360-180
 }
