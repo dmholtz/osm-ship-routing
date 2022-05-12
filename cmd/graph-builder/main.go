@@ -16,8 +16,8 @@ const nTarget = 300 // parameter for EquiSphereGrid
 
 func main() {
 
-	//arg := loadPolyJsonPolygons("antarctica.poly.json")
-	arg := loadPolyJsonPolygons("planet-coastlines.poly.json")
+	arg := loadPolyJsonPolygons("antarctica.poly.json")
+	//arg := loadPolyJsonPolygons("planet-coastlines.poly.json")
 
 	//grid := grid.NewSimpleSphereGrid(2*density, density, arg)
 	grid := grid.NewEquiSphereGrid(nTarget, arg)
@@ -43,6 +43,8 @@ func main() {
 	if wErr != nil {
 		panic(err)
 	}
+
+	graph.WriteFmi(gridGraph, "graph.fmi")
 }
 
 func loadPolyJsonPolygons(file string) []geometry.Polygon {
