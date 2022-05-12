@@ -12,11 +12,9 @@ const pbfFile string = "antarctica.osm.pbf"
 const geojsonFile string = "antarctica.geo.json"
 const polyJsonFile string = "antarctica.poly.json"
 
-//const pbfFile string = "central-america.osm.pbf"
-//const geojsonFile string = "central-america.geo.json"
-
 //const pbfFile string = "planet-coastlines.pbf"
 //const geojsonFile string = "planet-coastlines.geo.json"
+//const polyJsonFile string = "planet-coastlines.poly.json"
 
 func main() {
 
