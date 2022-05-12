@@ -10,6 +10,7 @@ import (
 
 const pbfFile string = "antarctica.osm.pbf"
 const geojsonFile string = "antarctica.geo.json"
+const polyJsonFile string = "antarctica.poly.json"
 
 //const pbfFile string = "central-america.osm.pbf"
 //const geojsonFile string = "central-america.geo.json"
@@ -40,7 +41,8 @@ func main() {
 
 	start = time.Now()
 
-	pbf.ExportGeojson(merger.Polygons(), coastlineImporter, geojsonFile)
+	//pbf.ExportGeojson(merger.Polygons(), coastlineImporter, geojsonFile)
+	pbf.ExportPolygonJson(merger.Polygons(), coastlineImporter, polyJsonFile)
 
 	elapsed = time.Since(start)
 	fmt.Printf("[TIME] Export to geojson: %s\n", elapsed)
