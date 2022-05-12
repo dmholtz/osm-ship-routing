@@ -13,17 +13,19 @@ import (
 	"github.com/paulmach/orb/geojson"
 )
 
-const density = 20
+const density = 20   // parameter for SimpleSphereGrid
+const nTarget = 3000 // parameter for EquiSphereGrid
 
 func main() {
 
 	//arg := africPolygons()
-	arg := loadGeoJsonPolygons("antarctica.geo.json")
-	//arg := loadGeoJsonPolygons("planet-coastlines.geo.json")
+	//arg := loadGeoJsonPolygons("antarctica.geo.json")
+	arg := loadGeoJsonPolygons("planet-coastlines.geo.json")
 
-	sgg := grid.NewSimpleSphereGrid(2*density, density, arg)
+	//grid := grid.NewSimpleSphereGrid(2*density, density, arg)
+	grid := grid.NewEquiSphereGrid(nTarget, arg)
 
-	gridGraph := sgg.ToGraph()
+	gridGraph := grid.ToGraph()
 	jsonObj, err := json.Marshal(gridGraph)
 	if err != nil {
 		panic(err)
