@@ -1,0 +1,56 @@
+openapi: 3.0.0
+info:
+  description: Access the global ship routing service via a RESTful API
+  title: Ship Routing API
+  version: 0.0.1
+servers:
+- url: /
+paths:
+  /routes:
+    post:
+      description: Compute a new route
+      operationId: computeRoute
+      requestBody:
+        $ref: '#/components/requestBodies/inline_object'
+        content:
+          application/json:
+            schema:
+              properties:
+                from:
+                  $ref: '#/components/schemas/Node'
+                to:
+                  $ref: '#/components/schemas/Node'
+              required:
+              - from
+              - to
+              type: object
+        required: true
+      responses:
+        "201":
+          description: Route successfully created
+components:
+  requestBodies:
+    inline_object:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/inline_object'
+      required: true
+  schemas:
+    Node:
+      properties:
+        lat:
+          type: number
+        lon:
+          type: number
+      type: object
+    inline_object:
+      properties:
+        from:
+          $ref: '#/components/schemas/Node'
+        to:
+          $ref: '#/components/schemas/Node'
+      required:
+      - from
+      - to
+      type: object
