@@ -1,5 +1,7 @@
 package graph
 
+import "fmt"
+
 // Implementation for dynamic graphs
 type AdjacencyListGraph struct {
 	Nodes     []Node
@@ -41,12 +43,12 @@ func (alg *AdjacencyListGraph) AddNode(n Node) {
 func (alg *AdjacencyListGraph) AddEdge(e Edge) {
 	// Check if both source and target node exit
 	if e.From >= alg.NodeCount() || e.To >= alg.NodeCount() {
-		panic(e)
+		panic(fmt.Sprintf("Edge out of range %v", e))
 	}
 	// Check for duplicates
 	for _, outgoingEdge := range alg.Edges[e.From] {
 		if e.To == outgoingEdge.To {
-			panic(e)
+			return // ignore duplicate edges
 		}
 	}
 	alg.Edges[e.From] = append(alg.Edges[e.From], e.toOutgoingEdge())

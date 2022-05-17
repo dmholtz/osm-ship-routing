@@ -58,10 +58,9 @@ func NewAdjacencyListFromFmi(filename string) *AdjacencyListGraph {
 
 	numNodes := 0
 	numParsedNodes := 0
-	numEdges := 0
-	numParsedEdges := 0
 
 	alg := AdjacencyListGraph{}
+	id2index := make(map[int]int)
 
 	parseState := PARSE_NODE_COUNT
 	for scanner.Scan() {
@@ -81,14 +80,12 @@ func NewAdjacencyListFromFmi(filename string) *AdjacencyListGraph {
 				parseState = PARSE_EDGE_COUNT
 			}
 		case PARSE_EDGE_COUNT:
-			if val, err := strconv.Atoi(line); err == nil {
-				numEdges = val
-				parseState = PARSE_NODES
-			}
+			parseState = PARSE_NODES
 		case PARSE_NODES:
 			var id int
 			var lat, lon float64
 			fmt.Sscanf(line, "%d %f %f", &id, &lat, &lon)
+			id2index[id] = alg.NodeCount()
 			alg.AddNode(Node{Lon: lon, Lat: lat})
 			numParsedNodes++
 			if numParsedNodes == numNodes {
@@ -97,12 +94,12 @@ func NewAdjacencyListFromFmi(filename string) *AdjacencyListGraph {
 		case PARSE_EDGES:
 			var from, to, distance int
 			fmt.Sscanf(line, "%d %d %d", &from, &to, &distance)
-			alg.AddEdge(Edge{From: from, To: to, Distance: distance})
-			numParsedEdges++
+			alg.AddEdge(Edge{From: id2index[from], To: id2index[to], Distance: distance})
 		}
 	}
 
-	if alg.NodeCount() != numNodes || alg.EdgeCount() != numEdges {
+	if alg.NodeCount() != numNodes {
+		// cannot check edge count because ocean.fmi contains duplicates, which are removed during import
 		panic("Invalid parsing result")
 	}
 
