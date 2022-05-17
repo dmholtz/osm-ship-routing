@@ -57,7 +57,7 @@ type DijkstraItem struct {
 	Predecessor int
 }
 
-func (aag AdjacencyArrayGraph) Dijkstra(origin, destination int) {
+func (aag *AdjacencyArrayGraph) Dijkstra(origin, destination int) {
 	dijkstraItems := make([]DijkstraItem, aag.NodeCount(), aag.NodeCount())
 	for i := 0; i < len(dijkstraItems); i++ {
 		dijkstraItems[i] = DijkstraItem{Distance: math.MaxInt, Predecessor: -1}
@@ -87,7 +87,8 @@ func (aag AdjacencyArrayGraph) Dijkstra(origin, destination int) {
 		}
 	}
 
-	for i := destination; i != -1; i = dijkstraItems[i].Predecessor {
-		fmt.Printf("%v <- ", i)
-	}
+	// turn off for benchmarking
+	//for i := destination; i != -1; i = dijkstraItems[i].Predecessor {
+	//	fmt.Printf("%v <- ", i)
+	//}
 }
