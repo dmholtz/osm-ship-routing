@@ -19,7 +19,7 @@
 
 !openapi-templates/*.mustache
 !pkg/server/api/*.yaml
-!pkg/server/..openapi-generate-ignore
+!pkg/server/.openapi-generator-ignore
 
 !generate-server-stub.sh
 !generator-config.yaml
