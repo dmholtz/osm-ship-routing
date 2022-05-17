@@ -57,20 +57,20 @@ func (c *DefaultApiController) Routes() Routes {
 	}
 }
 
-// ComputeRoute -
+// ComputeRoute - Compute a new route
 func (c *DefaultApiController) ComputeRoute(w http.ResponseWriter, r *http.Request) {
-	inlineObjectParam := InlineObject{}
+	routeRequestParam := RouteRequest{}
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
-	if err := d.Decode(&inlineObjectParam); err != nil {
+	if err := d.Decode(&routeRequestParam); err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertInlineObjectRequired(inlineObjectParam); err != nil {
+	if err := AssertRouteRequestRequired(routeRequestParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.ComputeRoute(r.Context(), inlineObjectParam)
+	result, err := c.service.ComputeRoute(r.Context(), routeRequestParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

@@ -26,13 +26,13 @@ func NewDefaultApiService() DefaultApiServicer {
 	return &DefaultApiService{}
 }
 
-// ComputeRoute - 
-func (s *DefaultApiService) ComputeRoute(ctx context.Context, inlineObject InlineObject) (ImplResponse, error) {
+// ComputeRoute - Compute a new route
+func (s *DefaultApiService) ComputeRoute(ctx context.Context, routeRequest RouteRequest) (ImplResponse, error) {
 	// TODO - update ComputeRoute with the required logic for this service method.
 	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
 
-	//TODO: Uncomment the next line to return response Response(201, {}) or use other options such as http.Ok ...
-	//return Response(201, nil),nil
+	//TODO: Uncomment the next line to return response Response(200, RouteResult{}) or use other options such as http.Ok ...
+	//return Response(200, RouteResult{}), nil
 
 	return Response(http.StatusNotImplemented, nil), errors.New("ComputeRoute method not implemented")
 }

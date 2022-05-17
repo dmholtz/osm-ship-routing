@@ -13,4 +13,5 @@ fi
 java -jar $JARFILE generate -i openapi.yaml \
     -g go-server \
     -c generator-config.yaml \
-    -o pkg/server
+    -o pkg/server \
+    -t openapi-templates
