@@ -12,16 +12,11 @@ func main() {
 	//aag := graph.NewAdjacencyArrayFromFmi("simpleGraph.fmi")
 	start := time.Now()
 	aag := graph.NewAdjacencyArrayFromFmi("ocean.fmi")
+	//aag := graph.NewAdjacencyArrayFromFmi("graph.fmi")
 	elapsed := time.Since(start)
 	fmt.Printf("[TIME-Import] = %s\n", elapsed)
 
-	benchmark(aag, 10)
-	/*
-		start = time.Now()
-		aag.Dijkstra(23456, 12345)
-		elapsed = time.Since(start)
-		fmt.Printf("[TIME-Navigate] = %s\n", elapsed)
-	*/
+	benchmark(aag, 20)
 }
 
 func benchmark(aag *graph.AdjacencyArrayGraph, n int) {
@@ -32,7 +27,7 @@ func benchmark(aag *graph.AdjacencyArrayGraph, n int) {
 		destination := rand.Intn(aag.NodeCount())
 
 		start := time.Now()
-		aag.Dijkstra(origin, destination)
+		graph.Dijkstra(aag, origin, destination)
 		elapsed := time.Since(start)
 		fmt.Printf("[TIME-Navigate] = %s\n", elapsed)
 
