@@ -11,13 +11,13 @@ import (
 	"github.com/dmholtz/osm-ship-routing/pkg/grid"
 )
 
-const density = 20  // parameter for SimpleSphereGrid
-const nTarget = 300 // parameter for EquiSphereGrid
+const density = 20      // parameter for SimpleSphereGrid
+const nTarget = 1000000 // parameter for EquiSphereGrid
 
 func main() {
 
-	arg := loadPolyJsonPolygons("antarctica.poly.json")
-	//arg := loadPolyJsonPolygons("planet-coastlines.poly.json")
+	//arg := loadPolyJsonPolygons("antarctica.poly.json")
+	arg := loadPolyJsonPolygons("planet-coastlines.poly.json")
 
 	//grid := grid.NewSimpleSphereGrid(2*density, density, arg)
 	grid := grid.NewEquiSphereGrid(nTarget, arg)
@@ -28,23 +28,12 @@ func main() {
 		panic(err)
 	}
 
-	wErr := os.WriteFile("graph.json", jsonObj, 0644)
+	wErr := os.WriteFile("ocean_1M.json", jsonObj, 0644)
 	if wErr != nil {
 		panic(err)
 	}
 
-	aag := graph.NewAdjacencyArrayFromGraph(gridGraph)
-	jsonObj, err = json.Marshal(aag)
-	if err != nil {
-		panic(err)
-	}
-
-	wErr = os.WriteFile("adjacency_array_graph.json", jsonObj, 0644)
-	if wErr != nil {
-		panic(err)
-	}
-
-	graph.WriteFmi(gridGraph, "graph.fmi")
+	graph.WriteFmi(gridGraph, "ocean_1M.fmi")
 }
 
 func loadPolyJsonPolygons(file string) []geometry.Polygon {

@@ -11,7 +11,7 @@ import (
 func main() {
 	//aag := graph.NewAdjacencyArrayFromFmi("simpleGraph.fmi")
 	start := time.Now()
-	aag := graph.NewAdjacencyArrayFromFmi("ocean.fmi")
+	aag := graph.NewAdjacencyArrayFromFmi("ocean_1M.fmi")
 	//aag := graph.NewAdjacencyArrayFromFmi("graph.fmi")
 	elapsed := time.Since(start)
 	fmt.Printf("[TIME-Import] = %s\n", elapsed)
@@ -27,9 +27,15 @@ func benchmark(aag *graph.AdjacencyArrayGraph, n int) {
 		destination := rand.Intn(aag.NodeCount())
 
 		start := time.Now()
-		graph.Dijkstra(aag, origin, destination)
+		path, length := graph.Dijkstra(aag, origin, destination)
 		elapsed := time.Since(start)
 		fmt.Printf("[TIME-Navigate] = %s\n", elapsed)
+
+		if length > -1 {
+			if path[0] != origin || path[len(path)-1] != destination {
+				panic("Invalid routing result")
+			}
+		}
 
 		runtime += int(elapsed)
 	}

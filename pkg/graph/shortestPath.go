@@ -2,7 +2,6 @@ package graph
 
 import (
 	"container/heap"
-	"fmt"
 )
 
 type PriorityQueueItem struct {
@@ -50,7 +49,7 @@ func (h *PriorityQueue) update(pqItem *PriorityQueueItem, newPriority int) {
 	heap.Fix(h, pqItem.index)
 }
 
-func Dijkstra(g Graph, origin, destination int) {
+func Dijkstra(g Graph, origin, destination int) ([]int, int) {
 	dijkstraItems := make([]*PriorityQueueItem, g.NodeCount(), g.NodeCount())
 	originItem := PriorityQueueItem{itemId: origin, priority: 0, predecessor: -1, index: -1}
 	dijkstraItems[origin] = &originItem
@@ -62,11 +61,6 @@ func Dijkstra(g Graph, origin, destination int) {
 	for len(pq) > 0 {
 		currentPqItem := heap.Pop(&pq).(*PriorityQueueItem)
 		currentNodeId := currentPqItem.itemId
-
-		if currentNodeId == destination {
-			fmt.Printf("Destination reached. Distance = %d\n", dijkstraItems[currentNodeId].priority)
-			break
-		}
 
 		for _, edge := range g.GetEdgesFrom(currentNodeId) {
 			successor := edge.To
@@ -83,10 +77,19 @@ func Dijkstra(g Graph, origin, destination int) {
 				}
 			}
 		}
+
+		if currentNodeId == destination {
+			break
+		}
 	}
 
-	// turn off for benchmarking
-	//for i := destination; i != -1; i = dijkstraItems[i].Predecessor {
-	//	fmt.Printf("%v <- ", i)
-	//}
+	length := -1           // by default a non-existing path has length -1
+	path := make([]int, 0) // by default, a non-existing path is an empty slice
+	if dijkstraItems[destination] != nil {
+		length = dijkstraItems[destination].priority
+		for nodeId := destination; nodeId != -1; nodeId = dijkstraItems[nodeId].predecessor {
+			path = append([]int{nodeId}, path...)
+		}
+	}
+	return path, length
 }
