@@ -16,7 +16,7 @@ func main() {
 	elapsed := time.Since(start)
 	fmt.Printf("[TIME-Import] = %s\n", elapsed)
 
-	benchmark(aag, 20)
+	benchmark(aag, 100)
 }
 
 func benchmark(aag *graph.AdjacencyArrayGraph, n int) {

@@ -3,7 +3,6 @@ package graph
 import (
 	"container/heap"
 	"fmt"
-	"math"
 )
 
 type PriorityQueueItem struct {
@@ -53,11 +52,8 @@ func (h *PriorityQueue) update(pqItem *PriorityQueueItem, newPriority int) {
 
 func Dijkstra(g Graph, origin, destination int) {
 	dijkstraItems := make([]*PriorityQueueItem, g.NodeCount(), g.NodeCount())
-	for i := 0; i < len(dijkstraItems); i++ {
-		pqItem := PriorityQueueItem{itemId: i, priority: math.MaxInt, predecessor: -1, index: -1}
-		dijkstraItems[i] = &pqItem
-	}
-	dijkstraItems[origin].priority = 0
+	originItem := PriorityQueueItem{itemId: origin, priority: 0, predecessor: -1, index: -1}
+	dijkstraItems[origin] = &originItem
 
 	pq := make(PriorityQueue, 0)
 	pq.Push(dijkstraItems[origin])
@@ -75,19 +71,16 @@ func Dijkstra(g Graph, origin, destination int) {
 		for _, edge := range g.GetEdgesFrom(currentNodeId) {
 			successor := edge.To
 
-			if updatedDistance := dijkstraItems[currentNodeId].priority + edge.Distance; updatedDistance < dijkstraItems[successor].priority {
-
-				if dijkstraItems[successor].predecessor != -1 {
-					// item is already in the pq
+			if dijkstraItems[successor] == nil {
+				newPriority := dijkstraItems[currentNodeId].priority + edge.Distance
+				pqItem := PriorityQueueItem{itemId: successor, priority: newPriority, predecessor: currentNodeId, index: -1}
+				dijkstraItems[successor] = &pqItem
+				heap.Push(&pq, &pqItem)
+			} else {
+				if updatedDistance := dijkstraItems[currentNodeId].priority + edge.Distance; updatedDistance < dijkstraItems[successor].priority {
 					pq.update(dijkstraItems[successor], updatedDistance)
-				} else {
-					// item is not yet in the pq
-					dijkstraItems[successor].priority = updatedDistance
-					heap.Push(&pq, dijkstraItems[successor])
+					dijkstraItems[successor].predecessor = currentNodeId
 				}
-
-				dijkstraItems[successor].predecessor = currentNodeId
-
 			}
 		}
 	}
