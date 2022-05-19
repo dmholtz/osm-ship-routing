@@ -11,8 +11,8 @@ import (
 func main() {
 	//aag := graph.NewAdjacencyArrayFromFmi("simpleGraph.fmi")
 	start := time.Now()
-	aag := graph.NewAdjacencyArrayFromFmi("ocean_1M.fmi")
-	//aag := graph.NewAdjacencyArrayFromFmi("graph.fmi")
+	//aag := graph.NewAdjacencyArrayFromFmi("ocean_1M.fmi")
+	aag := graph.NewAdjacencyArrayFromFmi("graph.fmi")
 	elapsed := time.Since(start)
 	fmt.Printf("[TIME-Import] = %s\n", elapsed)
 
