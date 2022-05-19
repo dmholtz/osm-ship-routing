@@ -11,8 +11,8 @@ import (
 	"github.com/dmholtz/osm-ship-routing/pkg/grid"
 )
 
-const density = 20      // parameter for SimpleSphereGrid
-const nTarget = 1000000 // parameter for EquiSphereGrid
+const density = 20    // parameter for SimpleSphereGrid
+const nTarget = 10000 // parameter for EquiSphereGrid
 
 func main() {
 
@@ -28,12 +28,12 @@ func main() {
 		panic(err)
 	}
 
-	wErr := os.WriteFile("ocean_1M.json", jsonObj, 0644)
+	wErr := os.WriteFile("graph.json", jsonObj, 0644)
 	if wErr != nil {
 		panic(err)
 	}
 
-	graph.WriteFmi(gridGraph, "ocean_1M.fmi")
+	graph.WriteFmi(gridGraph, "graph.fmi")
 }
 
 func loadPolyJsonPolygons(file string) []geometry.Polygon {
