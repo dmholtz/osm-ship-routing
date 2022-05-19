@@ -22,7 +22,7 @@ func NewShipRouter(g Graph) *ShipRouter {
 	return &ShipRouter{g: g}
 }
 
-func (sr ShipRouter) closestNodes(p1, p2 *geo.Point) (n1, n2 int) {
+func (sr ShipRouter) closestNodes(p1, p2 geo.Point) (n1, n2 int) {
 	n1, n2 = 0, 0
 	d1, d2 := math.MaxInt, math.MaxInt
 
@@ -31,16 +31,35 @@ func (sr ShipRouter) closestNodes(p1, p2 *geo.Point) (n1, n2 int) {
 		distance := p1.IntHaversine(testPoint)
 		if distance < d1 {
 			n1 = i
+			d1 = distance
 		}
-
+		distance = p2.IntHaversine(testPoint)
+		if distance < d2 {
+			n2 = i
+			d2 = distance
+		}
 	}
 	return n1, n2
 }
 
-func nodeToPoint(n Node) *geo.Point {
-	return geo.NewPoint(n.Lat, n.Lon)
+func (sr ShipRouter) ComputeRoute(origin, destination geo.Point) (route Route) {
+	originNode, desdestinationNode := sr.closestNodes(origin, destination)
+	nodePath, length := Dijkstra(sr.g, originNode, desdestinationNode)
+
+	if length > -1 {
+		// shortest path exists
+		waypoints := make([]geo.Point, 0)
+		for _, nodeId := range nodePath {
+			waypoints = append(waypoints, *nodeToPoint(sr.g.GetNode(nodeId)))
+		}
+		route = Route{Origin: origin, Destination: destination, Exists: true, Waypoints: waypoints, Length: length}
+	} else {
+		// shortest path does not exist
+		route = Route{Origin: origin, Destination: destination, Exists: false}
+	}
+	return route
 }
 
-func ComputeRoute(origin, destination geo.Point) Route {
-	return Route{}
+func nodeToPoint(n Node) *geo.Point {
+	return geo.NewPoint(n.Lat, n.Lon)
 }
