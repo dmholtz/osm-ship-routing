@@ -17,7 +17,13 @@
 !README.md
 !LICENSE
 
-# !Makefile
+!openapi-templates/*.mustache
+!pkg/server/api/*.yaml
+!pkg/server/.openapi-generator-ignore
+
+!generate-server-stub.sh
+!generator-config.yaml
+!openapi.yaml
 
 # ...even if they are in subdirectories
 !*/

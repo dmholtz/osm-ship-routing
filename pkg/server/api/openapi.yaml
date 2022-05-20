@@ -1,0 +1,122 @@
+openapi: 3.0.0
+info:
+  description: Access the global ship routing service via a RESTful API
+  title: Ship Routing API
+  version: 0.0.1
+servers:
+- url: /
+paths:
+  /routes:
+    post:
+      operationId: computeRoute
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteRequest'
+        description: Define origin and destination of the route to be computed
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteResult'
+          description: Result of the route request
+      summary: Compute a new route
+components:
+  schemas:
+    Point:
+      description: |
+        Object representation of a point in the Geographic Coordinate System (GCS).
+      example:
+        lon: 36.988422590534526
+        lat: -75.585092571711
+      properties:
+        lat:
+          description: unit degree
+          maximum: 90
+          minimum: -90.00000000001
+          type: number
+        lon:
+          description: unit degree
+          maximum: 180
+          minimum: -180
+          type: number
+      required:
+      - lat
+      - lon
+    RouteRequest:
+      description: |
+        Request a route from a origin to a destination.
+      example:
+        origin:
+          lon: 36.988422590534526
+          lat: -75.585092571711
+        destination:
+          lon: 36.988422590534526
+          lat: -75.585092571711
+      properties:
+        origin:
+          $ref: '#/components/schemas/Point'
+        destination:
+          $ref: '#/components/schemas/Point'
+      required:
+      - destination
+      - origin
+      type: object
+    RouteResult:
+      example:
+        path:
+          length: 1
+          waypoints:
+          - lon: 36.988422590534526
+            lat: -75.585092571711
+          - lon: 36.988422590534526
+            lat: -75.585092571711
+        origin:
+          lon: 36.988422590534526
+          lat: -75.585092571711
+        destination:
+          lon: 36.988422590534526
+          lat: -75.585092571711
+        reachable: true
+      properties:
+        origin:
+          $ref: '#/components/schemas/Point'
+        destination:
+          $ref: '#/components/schemas/Point'
+        reachable:
+          description: States whether a route from origin to destination exists
+          type: boolean
+        path:
+          $ref: '#/components/schemas/Path'
+      required:
+      - destination
+      - origin
+      - reachable
+      type: object
+    Path:
+      description: A path is described by sequence of points as well as its total
+        length.
+      example:
+        length: 1
+        waypoints:
+        - lon: 36.988422590534526
+          lat: -75.585092571711
+        - lon: 36.988422590534526
+          lat: -75.585092571711
+      properties:
+        waypoints:
+          description: A path is an ordered list of points.
+          items:
+            $ref: '#/components/schemas/Point'
+          minItems: 1
+          type: array
+        length:
+          description: unit meters
+          type: integer
+      required:
+      - length
+      - waypoints
+      type: object

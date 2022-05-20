@@ -1,0 +1,7 @@
+additionalProperties:
+  packageName: openapi_server
+  sourceFolder: openapi_server
+  outputAsLibrary: true
+gitUserId: dmholtz
+gitRepoId: osm-ship-routing
+
