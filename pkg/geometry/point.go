@@ -2,7 +2,7 @@ package geometry
 
 import "math"
 
-const earthRadius = 6371e3
+const earthRadius = 6371e3 // unit meter
 
 type Point [2]float64
 
@@ -66,6 +66,10 @@ func (first *Point) Haversine(second *Point) float64 {
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 
 	return earthRadius * c
+}
+
+func (first *Point) IntHaversine(second *Point) int {
+	return int(first.Haversine(second))
 }
 
 // Calculate the distance with the Spherical Law of Cosines.

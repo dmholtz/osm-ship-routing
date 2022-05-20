@@ -45,7 +45,7 @@ const (
 	PARSE_EDGES      = iota
 )
 
-func NewAdjacencyArrayFromFmi(filename string) *AdjacencyArrayGraph {
+func NewAdjacencyListFromFmi(filename string) *AdjacencyListGraph {
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -58,11 +58,9 @@ func NewAdjacencyArrayFromFmi(filename string) *AdjacencyArrayGraph {
 
 	numNodes := 0
 	numParsedNodes := 0
-	numEdges := 0
-	numParsedEdges := 0
-	var nodes []Node
-	var edges []outgoingEdge
-	var offsets []int
+
+	alg := AdjacencyListGraph{}
+	id2index := make(map[int]int)
 
 	parseState := PARSE_NODE_COUNT
 	for scanner.Scan() {
@@ -79,21 +77,16 @@ func NewAdjacencyArrayFromFmi(filename string) *AdjacencyArrayGraph {
 		case PARSE_NODE_COUNT:
 			if val, err := strconv.Atoi(line); err == nil {
 				numNodes = val
-				nodes = make([]Node, numNodes, numNodes)
-				offsets = make([]int, numNodes+1, numNodes+1)
 				parseState = PARSE_EDGE_COUNT
 			}
 		case PARSE_EDGE_COUNT:
-			if val, err := strconv.Atoi(line); err == nil {
-				numEdges = val
-				edges = make([]outgoingEdge, numEdges, numEdges)
-				parseState = PARSE_NODES
-			}
+			parseState = PARSE_NODES
 		case PARSE_NODES:
 			var id int
 			var lat, lon float64
 			fmt.Sscanf(line, "%d %f %f", &id, &lat, &lon)
-			nodes[id] = Node{Lon: lon, Lat: lat}
+			id2index[id] = alg.NodeCount()
+			alg.AddNode(Node{Lon: lon, Lat: lat})
 			numParsedNodes++
 			if numParsedNodes == numNodes {
 				parseState = PARSE_EDGES
@@ -101,15 +94,24 @@ func NewAdjacencyArrayFromFmi(filename string) *AdjacencyArrayGraph {
 		case PARSE_EDGES:
 			var from, to, distance int
 			fmt.Sscanf(line, "%d %d %d", &from, &to, &distance)
-			edges[numParsedEdges] = outgoingEdge{To: to, Distance: distance}
-			numParsedEdges++
-			offsets[from+1] = numParsedEdges
+			alg.AddEdge(Edge{From: id2index[from], To: id2index[to], Distance: distance})
 		}
+	}
+
+	if alg.NodeCount() != numNodes {
+		// cannot check edge count because ocean.fmi contains duplicates, which are removed during import
+		panic("Invalid parsing result")
 	}
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
 
-	return &AdjacencyArrayGraph{Nodes: nodes, Edges: edges, Offsets: offsets}
+	return &alg
+}
+
+func NewAdjacencyArrayFromFmi(filename string) *AdjacencyArrayGraph {
+	alg := NewAdjacencyListFromFmi(filename)
+	aag := NewAdjacencyArrayFromGraph(alg)
+	return aag
 }

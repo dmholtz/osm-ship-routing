@@ -98,14 +98,20 @@ func (esg *EquiSphereGrid) landWaterTest(polygons []geo.Polygon) {
 	for _, ring := range esg.points {
 		for _, point := range ring {
 			go func(idx int, point geo.Point) {
-				esg.isWater[idx] = true
-				for i, polygon := range polygons {
-					// roughly check, whether the point is contained in the bounding box of the polygon
-					if bboxes[i].Contains(point) {
-						// precisely check, whether the polygon contains the point
-						if polygon.Contains(&point) {
-							esg.isWater[idx] = false
-							break
+				if point.Lat() < -84 {
+					// hard-coded: make south pole continent
+					esg.isWater[idx] = false
+				} else {
+					// no special treatment for non sout pole points
+					esg.isWater[idx] = true
+					for i, polygon := range polygons {
+						// roughly check, whether the point is contained in the bounding box of the polygon
+						if bboxes[i].Contains(point) {
+							// precisely check, whether the polygon contains the point
+							if polygon.Contains(&point) {
+								esg.isWater[idx] = false
+								break
+							}
 						}
 					}
 				}
@@ -142,7 +148,10 @@ func (esg *EquiSphereGrid) createEdges() {
 		neighborIndexTuples := esg.neighborsOf(indexTuple)
 		for _, neighborIndexTuple := range neighborIndexTuples {
 			if neighborNodeId, ok := esg.grid2nodes[neighborIndexTuple]; ok {
-				edge := gr.Edge{From: nodeId, To: neighborNodeId, Distance: 1} // todo: compute distance
+				p1 := geo.NewPoint(esg.nodes[nodeId].Lat, esg.nodes[nodeId].Lon)
+				p2 := geo.NewPoint(esg.nodes[neighborNodeId].Lat, esg.nodes[neighborNodeId].Lon)
+				distance := p1.IntHaversine(p2)
+				edge := gr.Edge{From: nodeId, To: neighborNodeId, Distance: distance}
 				esg.edges = append(esg.edges, edge)
 				esg.edges = append(esg.edges, edge.Invert())
 			}

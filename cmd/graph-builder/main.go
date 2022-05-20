@@ -12,12 +12,12 @@ import (
 )
 
 const density = 20  // parameter for SimpleSphereGrid
-const nTarget = 300 // parameter for EquiSphereGrid
+const nTarget = 1e4 // parameter for EquiSphereGrid
 
 func main() {
 
-	arg := loadPolyJsonPolygons("antarctica.poly.json")
-	//arg := loadPolyJsonPolygons("planet-coastlines.poly.json")
+	//arg := loadPolyJsonPolygons("antarctica.poly.json")
+	arg := loadPolyJsonPolygons("planet-coastlines.poly.json")
 
 	//grid := grid.NewSimpleSphereGrid(2*density, density, arg)
 	grid := grid.NewEquiSphereGrid(nTarget, arg)
@@ -29,17 +29,6 @@ func main() {
 	}
 
 	wErr := os.WriteFile("graph.json", jsonObj, 0644)
-	if wErr != nil {
-		panic(err)
-	}
-
-	aag := graph.NewAdjacencyArrayFromGraph(gridGraph)
-	jsonObj, err = json.Marshal(aag)
-	if err != nil {
-		panic(err)
-	}
-
-	wErr = os.WriteFile("adjacency_array_graph.json", jsonObj, 0644)
 	if wErr != nil {
 		panic(err)
 	}
