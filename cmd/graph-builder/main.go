@@ -11,8 +11,8 @@ import (
 	"github.com/dmholtz/osm-ship-routing/pkg/grid"
 )
 
-const density = 20    // parameter for SimpleSphereGrid
-const nTarget = 10000 // parameter for EquiSphereGrid
+const density = 20  // parameter for SimpleSphereGrid
+const nTarget = 1e4 // parameter for EquiSphereGrid
 
 func main() {
 
