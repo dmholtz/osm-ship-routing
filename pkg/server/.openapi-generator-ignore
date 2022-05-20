@@ -10,6 +10,8 @@ Dockerfile
 go.mod
 main.go
 
+openapi_server/api_default_service.go
+
 # You can match any string of characters against a directory, file or extension with a single asterisk (\*):
 
 #foo/\*/qux

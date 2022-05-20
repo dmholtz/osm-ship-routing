@@ -17,12 +17,12 @@ import (
 )
 
 func main() {
-	log.Printf("Server started")
+	log.Printf("Server started @ http://localhost:8081")
 
 	DefaultApiService := server.NewDefaultApiService()
 	DefaultApiController := server.NewDefaultApiController(DefaultApiService)
 
 	router := server.NewRouter(DefaultApiController)
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":8081", router))
 }

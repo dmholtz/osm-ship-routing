@@ -32,7 +32,7 @@ components:
         lat:
           type: number
           description: unit degree
-          minimum: -90
+          minimum: -90.00000000001
           maximum: 90
         lon:
           type: number
@@ -64,7 +64,7 @@ components:
         reachable:
           type: boolean
           description: States whether a route from origin to destination exists
-        Path:
+        path:
           $ref: "#/components/schemas/Path"
       required:
         - origin

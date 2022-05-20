@@ -10,7 +10,6 @@
 package openapi_server
 
 type RouteResult struct {
-
 	Origin Point `json:"origin"`
 
 	Destination Point `json:"destination"`
@@ -18,15 +17,15 @@ type RouteResult struct {
 	// States whether a route from origin to destination exists
 	Reachable bool `json:"reachable"`
 
-	Path Path `json:"Path,omitempty"`
+	Path Path `json:"path,omitempty"`
 }
 
 // AssertRouteResultRequired checks if the required fields are not zero-ed
 func AssertRouteResultRequired(obj RouteResult) error {
 	elements := map[string]interface{}{
-		"origin": obj.Origin,
+		"origin":      obj.Origin,
 		"destination": obj.Destination,
-		"reachable": obj.Reachable,
+		"reachable":   obj.Reachable,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {
