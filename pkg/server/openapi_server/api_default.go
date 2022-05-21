@@ -96,6 +96,9 @@ func (c *DefaultApiController) RoutesOptions(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	// If no error, encode the body and the result code
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	EncodeJSONResponse(result.Body, &result.Code, w)
 
 }

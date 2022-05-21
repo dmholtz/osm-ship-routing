@@ -11,6 +11,7 @@ go.mod
 main.go
 
 openapi_server/api_default_service.go
+openapi_server/api_default.go
 
 # You can match any string of characters against a directory, file or extension with a single asterisk (\*):
 
