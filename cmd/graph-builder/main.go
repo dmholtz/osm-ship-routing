@@ -12,7 +12,7 @@ import (
 )
 
 const density = 710 // parameter for SimpleSphereGrid
-const nTarget = 1e4 // parameter for EquiSphereGrid
+const nTarget = 1e6 // parameter for EquiSphereGrid
 
 func main() {
 
@@ -20,7 +20,7 @@ func main() {
 	arg := loadPolyJsonPolygons("planet-coastlines.poly.json")
 
 	//grid := grid.NewSimpleSphereGrid(2*density, density, arg)
-	grid := grid.NewEquiSphereGrid(nTarget, arg)
+	grid := grid.NewEquiSphereGrid(nTarget, grid.SIX_NEIGHBORS, arg)
 
 	gridGraph := grid.ToGraph()
 	jsonObj, err := json.Marshal(gridGraph)
