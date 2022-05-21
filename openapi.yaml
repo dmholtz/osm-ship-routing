@@ -21,8 +21,23 @@ paths:
           description: Result of the route request
           content:
             application/json:
-              schema: 
-                $ref: "#/components/schemas/RouteResult"          
+              schema:
+                $ref: "#/components/schemas/RouteResult"
+    options:
+      summary: CORS support
+      responses:
+        '204':
+          description: Default response for CORS method headers
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
 components:
   schemas:
     Point:
