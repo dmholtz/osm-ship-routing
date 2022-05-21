@@ -21,6 +21,7 @@ import (
 // pass the data to a DefaultApiServicer to perform the required actions, then write the service results to the http response.
 type DefaultApiRouter interface { 
 	ComputeRoute(http.ResponseWriter, *http.Request)
+	RoutesOptions(http.ResponseWriter, *http.Request)
 }
 
 
@@ -30,4 +31,5 @@ type DefaultApiRouter interface {
 // and updated with the logic required for the API.
 type DefaultApiServicer interface { 
 	ComputeRoute(context.Context, RouteRequest) (ImplResponse, error)
+	RoutesOptions(context.Context) (ImplResponse, error)
 }

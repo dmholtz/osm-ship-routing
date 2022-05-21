@@ -53,6 +53,13 @@ func (s *DefaultApiService) ComputeRoute(ctx context.Context, routeRequest Route
 		routeResult.Reachable = false
 	}
 
-	//TODO: Uncomment the next line to return response Response(200, RouteResult{}) or use other options such as http.Ok ...
 	return Response(http.StatusOK, routeResult), nil
+}
+
+// RoutesOptions - CORS support
+func (s *DefaultApiService) RoutesOptions(ctx context.Context) (ImplResponse, error) {
+	// TODO - update RoutesOptions with the required logic for this service method.
+	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+
+	return Response(http.StatusNoContent, nil), nil
 }

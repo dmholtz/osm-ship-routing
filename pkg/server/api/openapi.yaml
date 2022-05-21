@@ -7,6 +7,27 @@ servers:
 - url: /
 paths:
   /routes:
+    options:
+      responses:
+        "204":
+          description: Default response for CORS method headers
+          headers:
+            Access-Control-Allow-Origin:
+              explode: false
+              schema:
+                type: string
+              style: simple
+            Access-Control-Allow-Methods:
+              explode: false
+              schema:
+                type: string
+              style: simple
+            Access-Control-Allow-Headers:
+              explode: false
+              schema:
+                type: string
+              style: simple
+      summary: CORS support
     post:
       operationId: computeRoute
       requestBody:

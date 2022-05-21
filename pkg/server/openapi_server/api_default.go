@@ -54,6 +54,12 @@ func (c *DefaultApiController) Routes() Routes {
 			"/routes",
 			c.ComputeRoute,
 		},
+		{
+			"RoutesOptions",
+			strings.ToUpper("Options"),
+			"/routes",
+			c.RoutesOptions,
+		},
 	}
 }
 
@@ -71,6 +77,19 @@ func (c *DefaultApiController) ComputeRoute(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	result, err := c.service.ComputeRoute(r.Context(), routeRequestParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
+// RoutesOptions - CORS support
+func (c *DefaultApiController) RoutesOptions(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.RoutesOptions(r.Context())
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
