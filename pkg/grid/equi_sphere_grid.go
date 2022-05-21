@@ -102,7 +102,7 @@ func (esg *EquiSphereGrid) landWaterTest(polygons []geo.Polygon) {
 					// hard-coded: make south pole continent
 					esg.isWater[idx] = false
 				} else {
-					// no special treatment for non sout pole points
+					// no special treatment for non south pole points
 					esg.isWater[idx] = true
 					for i, polygon := range polygons {
 						// roughly check, whether the point is contained in the bounding box of the polygon

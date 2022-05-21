@@ -89,14 +89,20 @@ func (ssg *SimpleSphereGrid) landWaterTest(polygons []geo.Polygon) {
 	wg.Add(numPoints)
 	for idx, point := range ssg.points {
 		go func(idx int, point geo.Point) {
-			ssg.isWater[idx] = true
-			for i, polygon := range polygons {
-				// roughly check, whether the point is contained in the bounding box of the polygon
-				if bboxes[i].Contains(point) {
-					// precisely check, whether the polygon contains the point
-					if polygon.Contains(&point) {
-						ssg.isWater[idx] = false
-						break
+			if point.Lat() < -84 {
+				// hard-coded: make south pole continent
+				ssg.isWater[idx] = false
+			} else {
+				// no special treatment for non south pole points
+				ssg.isWater[idx] = true
+				for i, polygon := range polygons {
+					// roughly check, whether the point is contained in the bounding box of the polygon
+					if bboxes[i].Contains(point) {
+						// precisely check, whether the polygon contains the point
+						if polygon.Contains(&point) {
+							ssg.isWater[idx] = false
+							break
+						}
 					}
 				}
 			}
@@ -125,7 +131,10 @@ func (ssg *SimpleSphereGrid) createEdges() {
 		neighborCellIds := ssg.neighborsOf(cellId)
 		for _, neighborCellId := range neighborCellIds {
 			if neighborNodeId, ok := ssg.grid2nodes[neighborCellId]; ok {
-				edge := gr.Edge{From: nodeId, To: neighborNodeId, Distance: 1} // todo: compute distance
+				p1 := geo.NewPoint(ssg.nodes[nodeId].Lat, ssg.nodes[nodeId].Lon)
+				p2 := geo.NewPoint(ssg.nodes[neighborNodeId].Lat, ssg.nodes[neighborNodeId].Lon)
+				distance := p1.IntHaversine(p2)
+				edge := gr.Edge{From: nodeId, To: neighborNodeId, Distance: distance}
 				ssg.edges = append(ssg.edges, edge)
 			}
 		}
