@@ -39,6 +39,7 @@ func (h *PriorityQueue) Pop() interface{} {
 	old := *h
 	n := len(old)
 	pqItem := old[n-1]
+	old[n-1] = nil
 	pqItem.index = -1 // for safety
 	*h = old[0 : n-1]
 	return pqItem
@@ -55,8 +56,8 @@ func Dijkstra(g Graph, origin, destination int) ([]int, int) {
 	dijkstraItems[origin] = &originItem
 
 	pq := make(PriorityQueue, 0)
-	pq.Push(dijkstraItems[origin])
 	heap.Init(&pq)
+	heap.Push(&pq, dijkstraItems[origin])
 
 	for len(pq) > 0 {
 		currentPqItem := heap.Pop(&pq).(*PriorityQueueItem)
