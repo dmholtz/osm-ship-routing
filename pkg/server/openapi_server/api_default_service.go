@@ -25,16 +25,14 @@ type DefaultApiService struct {
 }
 
 // NewDefaultApiService creates a default api service
-func NewDefaultApiService() DefaultApiServicer {
-	g := graph.NewAdjacencyArrayFromFmi("ocean_1M.fmi")
+func NewDefaultApiService(graphFile string) DefaultApiServicer {
+	g := graph.NewAdjacencyArrayFromFmi(graphFile)
 	sr := graph.NewShipRouter(g)
 	return &DefaultApiService{shipRouter: sr}
 }
 
 // ComputeRoute - Compute a new route
 func (s *DefaultApiService) ComputeRoute(ctx context.Context, routeRequest RouteRequest) (ImplResponse, error) {
-	// TODO - update ComputeRoute with the required logic for this service method.
-	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
 	origin := geometry.NewPoint(float64(routeRequest.Origin.Lat), float64(routeRequest.Origin.Lon))
 	destination := geometry.NewPoint(float64(routeRequest.Destination.Lat), float64(routeRequest.Destination.Lon))
 
@@ -53,6 +51,5 @@ func (s *DefaultApiService) ComputeRoute(ctx context.Context, routeRequest Route
 		routeResult.Reachable = false
 	}
 
-	//TODO: Uncomment the next line to return response Response(200, RouteResult{}) or use other options such as http.Ok ...
 	return Response(http.StatusOK, routeResult), nil
 }

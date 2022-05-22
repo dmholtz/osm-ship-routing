@@ -19,7 +19,7 @@ import (
 func main() {
 	log.Printf("Server started @ http://localhost:8081")
 
-	DefaultApiService := server.NewDefaultApiService()
+	DefaultApiService := server.NewDefaultApiService("ocean_1M.fmi")
 	DefaultApiController := server.NewDefaultApiController(DefaultApiService)
 
 	router := server.NewRouter(DefaultApiController)
