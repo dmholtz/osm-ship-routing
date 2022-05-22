@@ -10,8 +10,15 @@ import (
 	gr "github.com/dmholtz/osm-ship-routing/pkg/graph"
 )
 
+// mesh types
+const (
+	FOUR_NEIGHBORS = iota
+	SIX_NEIGHBORS  = iota
+)
+
 type EquiSphereGrid struct {
 	nTarget    int // approximate number of points in in the grid
+	meshType   int // defines whether each node has at most four or six neighbors
 	NumPoints  int // actual number of points in the grid
 	points     [][]geo.Point
 	isWater    []bool
@@ -26,11 +33,14 @@ type IndexTupel struct {
 	lonCol int
 }
 
-func NewEquiSphereGrid(n int, coastlines []geo.Polygon) *EquiSphereGrid {
-	if n < 2 {
-		panic(n)
+func NewEquiSphereGrid(nTarget int, meshType int, coastlines []geo.Polygon) *EquiSphereGrid {
+	if nTarget < 2 {
+		panic(nTarget)
 	}
-	esg := EquiSphereGrid{nTarget: n}
+	if meshType != FOUR_NEIGHBORS && meshType != SIX_NEIGHBORS {
+		panic(fmt.Sprintf("Invalid mesh type specified: %d not in [%d, %d}]", meshType, FOUR_NEIGHBORS, SIX_NEIGHBORS))
+	}
+	esg := EquiSphereGrid{nTarget: nTarget, meshType: meshType}
 
 	start := time.Now()
 	esg.distributePoints()
@@ -161,11 +171,18 @@ func (esg *EquiSphereGrid) createEdges() {
 
 func (esg *EquiSphereGrid) neighborsOf(cell IndexTupel) []IndexTupel {
 	neighbors := make([]IndexTupel, 0)
-	// northern neighbor
+	// northern neighbor(s)
 	if cell.LatRow > 0 {
 		lonColNumeric := float64(cell.lonCol*len(esg.points[cell.LatRow-1])) / float64(len(esg.points[cell.LatRow]))
-		lonCol := int(math.Round(lonColNumeric)) % len(esg.points[cell.LatRow-1])
-		neighbors = append(neighbors, IndexTupel{LatRow: cell.LatRow - 1, lonCol: lonCol})
+		if esg.meshType == FOUR_NEIGHBORS {
+			lonCol := int(math.Round(lonColNumeric)) % len(esg.points[cell.LatRow-1])
+			neighbors = append(neighbors, IndexTupel{LatRow: cell.LatRow - 1, lonCol: lonCol})
+		} else {
+			lonCol1 := int(math.Floor(lonColNumeric)) % len(esg.points[cell.LatRow-1])
+			lonCol2 := int(math.Ceil(lonColNumeric)) % len(esg.points[cell.LatRow-1])
+			neighbors = append(neighbors, IndexTupel{LatRow: cell.LatRow - 1, lonCol: lonCol1})
+			neighbors = append(neighbors, IndexTupel{LatRow: cell.LatRow - 1, lonCol: lonCol2})
+		}
 	}
 
 	// western neighbor
