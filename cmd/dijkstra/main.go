@@ -8,17 +8,18 @@ import (
 	"github.com/dmholtz/osm-ship-routing/pkg/graph"
 )
 
+const graphFile = "graphs/ocean_equi_4.fmi"
+
 func main() {
-	//aag := graph.NewAdjacencyArrayFromFmi("simpleGraph.fmi")
 	start := time.Now()
-	//aag := graph.NewAdjacencyArrayFromFmi("ocean_1M.fmi")
-	aag := graph.NewAdjacencyArrayFromFmi("graph.fmi")
+	aag := graph.NewAdjacencyArrayFromFmi(graphFile)
 	elapsed := time.Since(start)
 	fmt.Printf("[TIME-Import] = %s\n", elapsed)
 
 	benchmark(aag, 100)
 }
 
+// Run benchmarks on the provided graphs: Compute n random routes
 func benchmark(aag *graph.AdjacencyArrayGraph, n int) {
 
 	runtime := 0

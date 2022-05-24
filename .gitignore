@@ -25,5 +25,9 @@
 !generator-config.yaml
 !openapi.yaml
 
+!graphs/ocean_equi_4.fmi
+!graphs/ocean_equi_6.fmi
+!graphs/ocean_simple_4.fmi
+
 # ...even if they are in subdirectories
 !*/
