@@ -9,6 +9,7 @@
 Dockerfile
 go.mod
 main.go
+README.md
 
 openapi_server/api_default_service.go
 openapi_server/api_default.go
