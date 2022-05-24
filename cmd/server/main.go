@@ -16,13 +16,15 @@ import (
 	server "github.com/dmholtz/osm-ship-routing/pkg/server/openapi_server"
 )
 
-func main() {
-	log.Printf("Server started @ http://localhost:8081")
+const fileName = "graphs/ocean_equi_4.fmi"
 
-	DefaultApiService := server.NewDefaultApiService("ocean_1M.fmi")
+func main() {
+	log.Printf("Loading graph '%s' into memory", fileName)
+	DefaultApiService := server.NewDefaultApiService(fileName)
 	DefaultApiController := server.NewDefaultApiController(DefaultApiService)
 
 	router := server.NewRouter(DefaultApiController)
+	log.Printf("Server started @ http://localhost:8081")
 
 	log.Fatal(http.ListenAndServe(":8081", router))
 }
