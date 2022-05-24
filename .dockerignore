@@ -1,0 +1,6 @@
+*.json
+*.pbf
+*.jar
+*.fmi
+graphs/*.fmi
+!graphs/ocean_equi_4.fmi

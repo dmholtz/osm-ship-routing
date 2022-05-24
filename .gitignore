@@ -30,5 +30,8 @@
 !graphs/ocean_equi_6.fmi
 !graphs/ocean_simple_4.fmi
 
+!Dockerfile
+!.dockerignore
+
 # ...even if they are in subdirectories
 !*/
