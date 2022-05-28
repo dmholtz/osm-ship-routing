@@ -100,3 +100,14 @@ func (first *Point) Midpoint(second *Point) *Point {
 	return NewPoint(Rad2Deg(phi), Rad2Deg(lambda))
 	// The longitude can be normalised to −180…+180 using (lon+540)%360-180
 }
+
+func (first *Point) LatitudeOnLineAtLon(second *Point, lon float64) float64 {
+	lambda := Deg2Rad(lon)
+	phi := first.Phi() + ((lambda-first.Lambda())/(second.Lambda()-first.Lambda()))*(second.Phi()-first.Phi())
+	return Rad2Deg(phi)
+}
+
+func (first *Point) LatOfCrossingPoint(second *Point, lon float64) float64 {
+	phi := first.Phi() + ((second.Phi()-first.Phi())/(second.Lambda()-first.Lambda()))*(Deg2Rad(lon)-first.Lambda())
+	return Rad2Deg(phi)
+}
