@@ -1,7 +1,6 @@
 package geometry
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -75,31 +74,27 @@ func (p *Polygon) BoundingBox() BoundingBox {
 	return BoundingBox{LatMin: latMin, LatMax: latMax, LonMin: lonMin, LonMax: lonMax}
 }
 
-func (p *Polygon) Contains(point *Point) (bool, bool) {
+func (p *Polygon) Contains(point *Point) bool {
 	if !p.IsClosed() {
-		return false, false
+		return false
 	}
 
 	start := p.Size() - 1
 	end := 0
 
 	// check the [start,end] edge for intersection with the test ray
-	contains, newContains := p.intersectsWithRaycast(point, p.At(start), p.At(end))
+	contains := p.intersectsWithRaycast(point, p.At(start), p.At(end))
 	// check each other edge for intersection with the test ray
 	for i := 1; i < p.Size(); i++ {
-		c, newC := p.intersectsWithRaycast(point, p.At(i-1), p.At(i))
-		if c {
+		if p.intersectsWithRaycast(point, p.At(i-1), p.At(i)) {
 			contains = !contains
 		}
-		if newC {
-			newContains = !newContains
-		}
 	}
-	return contains, newContains
+	return contains
 }
 
-func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) (bool, bool) {
-	// based on paper:
+func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) bool {
+	// based on paper: Some Algorithms for Polygons on a Sphere (Robert.G .Chamberlain)
 
 	// ensure that start has the lower longitude
 	if start.Lon() > end.Lon() {
@@ -117,27 +112,27 @@ func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) 
 	// If the longitude of the ray is not between the longitudes of the ends of the edge,
 	// there is no intersection
 	if point.Lon() < start.Lon() || point.Lon() > end.Lon() {
-		return false, false
+		return false
 	}
 
 	// decide which point of the edge is norhterly
 	if start.Lat() > end.Lat() {
 		if point.Lat() > start.Lat() {
 			// the point is above the edge -> it can't intersect with the edge
-			return false, false
+			return false
 		}
 		if point.Lat() < end.Lat() {
 			// the point's ray intersects with the edge
-			return true, true
+			return true
 		}
 	} else {
 		if point.Lat() > end.Lat() {
 			// the point is above the edge -> it can't intersect with the edge
-			return false, false
+			return false
 		}
 		if point.Lat() < start.Lat() {
 			// the point's ray intersects with the edge
-			return true, true
+			return true
 		}
 	}
 	// Only if the test point is north of that chord is it necessary to compute the
@@ -145,21 +140,13 @@ func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) 
 	// latitude of Q
 	crossLat := start.LatitudeOnLineAtLon(end, point.Lon())
 	intersects := crossLat >= point.Lat()
-	dif := start.LatitudeOnLineAtLon(end, point.Lon()) - start.LatOfCrossingPoint(end, point.Lon())
-	if math.Abs(dif) > 0.1 {
-		fmt.Printf("Crossing Point latitude differs: %v\n", dif)
-	}
-	raySlope := (point.Lon() - start.Lon()) / (point.Lat() - start.Lat())
-	diagSlope := (end.Lon() - start.Lon()) / (end.Lat() - start.Lat())
 
-	//fmt.Printf("own vs given: %t, %t\n", raySlope >= diagSlope, intersects)
-	if (raySlope >= diagSlope) != intersects {
-		miss++
-	} else {
-		hit++
-	}
-	if miss%10 == 0 {
-		fmt.Printf("Miss: %v, hit: %v\n", miss, hit)
-	}
-	return (raySlope >= diagSlope), intersects
+	/*
+		// following could be (slightly) faster
+		raySlope := (point.Lon() - start.Lon()) / (point.Lat() - start.Lat())
+		diagSlope := (end.Lon() - start.Lon()) / (end.Lat() - start.Lat())
+		return raySlope >= diagSlope
+	*/
+
+	return intersects
 }

@@ -99,7 +99,7 @@ func (ssg *SimpleSphereGrid) landWaterTest(polygons []geo.Polygon) {
 					// roughly check, whether the point is contained in the bounding box of the polygon
 					if bboxes[i].Contains(point) {
 						// precisely check, whether the polygon contains the point
-						contains, _ := polygon.Contains(&point)
+						contains := polygon.Contains(&point)
 						if contains {
 							ssg.isWater[idx] = false
 							break

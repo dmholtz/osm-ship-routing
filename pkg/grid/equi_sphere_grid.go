@@ -90,7 +90,6 @@ func (esg *EquiSphereGrid) distributePoints() {
 
 func (esg *EquiSphereGrid) landWaterTest(polygons []geo.Polygon) {
 	esg.isWater = make([]bool, esg.NumPoints, esg.NumPoints)
-	newIsWater := make([]bool, esg.NumPoints, esg.NumPoints)
 
 	// pre-compute bounding boxes for every polygon
 	bboxes := make([]geo.BoundingBox, len(polygons), len(polygons))
@@ -119,18 +118,9 @@ func (esg *EquiSphereGrid) landWaterTest(polygons []geo.Polygon) {
 						// roughly check, whether the point is contained in the bounding box of the polygon
 						if bboxes[i].Contains(point) {
 							// precisely check, whether the polygon contains the point
-							contains, newContains := polygon.Contains(&point)
-							if contains != newContains {
-								fmt.Printf("Point %v is on land (new): %t\n", point, newContains)
-							}
-							if newContains {
-								newIsWater[idx] = false
-							}
+							contains := polygon.Contains(&point)
 							if contains {
 								esg.isWater[idx] = false
-								break
-							}
-							if !newIsWater[idx] && !esg.isWater[idx] {
 								break
 							}
 						}
@@ -142,16 +132,6 @@ func (esg *EquiSphereGrid) landWaterTest(polygons []geo.Polygon) {
 		}
 	}
 	wg.Wait()
-
-	cellId := 0
-	for _, ring := range esg.points {
-		for _, point := range ring {
-			if esg.isWater[cellId] != newIsWater[cellId] {
-				fmt.Printf("Point %v is different. Old: %t, new: %t\n", point, esg.isWater[cellId], newIsWater[cellId])
-			}
-			cellId++
-		}
-	}
 }
 
 func (esg *EquiSphereGrid) createNodes() {
