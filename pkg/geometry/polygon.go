@@ -88,31 +88,50 @@ func (p *Polygon) Contains(point *Point) bool {
 }
 
 func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) bool {
+	// based on paper:
+
+	// ensure that start has the lower longitude
 	if start.Lon() > end.Lon() {
 		start, end = end, start
 	}
+
+	// Move the point a little bit to the east to avoid miscounting
+	// -> those edges whose other end is westward will be counted,
+	// while those whose other end is not westward will not
 	for point.Lon() == start.Lon() || point.Lon() == end.Lon() {
 		newLon := math.Nextafter(point.Lon(), math.Inf(1))
 		point = NewPoint(point.Lat(), newLon)
 	}
+
+	// If the longitude of the ray is not between the longitudes of the ends of the edge,
+	// there is no intersection
 	if point.Lon() < start.Lon() || point.Lon() > end.Lon() {
 		return false
 	}
+
+	// decide which point of the edge is norhterly
 	if start.Lat() > end.Lat() {
 		if point.Lat() > start.Lat() {
+			// the point is above the edge -> it can't intersect with the edge
 			return false
 		}
 		if point.Lat() < end.Lat() {
+			// the point's ray intersects with the edge
 			return true
 		}
 	} else {
 		if point.Lat() > end.Lat() {
+			// the point is above the edge -> it can't intersect with the edge
 			return false
 		}
 		if point.Lat() < start.Lat() {
+			// the point's ray intersects with the edge
 			return true
 		}
 	}
+	// Only if the test point is north of that chord is it necessary to compute the
+	// latitude of the edge at the test point's longitude and compare it to the
+	// latitude of Q
 	raySlope := (point.Lon() - start.Lon()) / (point.Lat() - start.Lat())
 	diagSlope := (end.Lon() - start.Lon()) / (end.Lat() - start.Lat())
 
