@@ -111,3 +111,9 @@ func (first *Point) LatOfCrossingPoint(second *Point, lon float64) float64 {
 	phi := first.Phi() + ((second.Phi()-first.Phi())/(second.Lambda()-first.Lambda()))*(Deg2Rad(lon)-first.Lambda())
 	return Rad2Deg(phi)
 }
+
+func (first *Point) GreatCircleLatOfCrossingPoint(second *Point, lon float64) float64 {
+	tanPhi := math.Tan(first.Phi())*(math.Sin(Deg2Rad(lon)-second.Lambda())/math.Sin(first.Lambda()-second.Lambda())) - math.Tan(second.Phi())*(math.Sin(Deg2Rad(lon)-first.Lambda())/math.Sin(first.Lambda()-second.Lambda()))
+	phi := math.Atan(tanPhi)
+	return Rad2Deg(phi)
+}

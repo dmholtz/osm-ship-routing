@@ -80,7 +80,8 @@ func (ssg *SimpleSphereGrid) landWaterTest(polygons []geo.Polygon) {
 	wg.Add(len(polygons))
 	for i, polygon := range polygons {
 		go func(i int, polygon geo.Polygon) {
-			bboxes[i] = polygon.BoundingBox()
+			bboxes[i] = polygon.LatLonBoundingBox()
+			//bboxes[i] = polygon.GreatCircleBoundingBox()
 			wg.Done()
 		}(i, polygon)
 	}

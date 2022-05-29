@@ -1,6 +1,7 @@
 package geometry
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -54,7 +55,7 @@ func (p *Polygon) IsClosed() bool {
 	return true
 }
 
-func (p *Polygon) BoundingBox() BoundingBox {
+func (p *Polygon) LatLonBoundingBox() BoundingBox {
 	latMin, lonMin := math.Inf(1), math.Inf(1)
 	latMax, lonMax := math.Inf(-1), math.Inf(-1)
 	for _, point := range p.Points() {
@@ -71,6 +72,114 @@ func (p *Polygon) BoundingBox() BoundingBox {
 			lonMax = point.Lon()
 		}
 	}
+	return BoundingBox{LatMin: latMin, LatMax: latMax, LonMin: lonMin, LonMax: lonMax}
+}
+
+func (p *Polygon) GreatCircleBoundingBox() BoundingBox {
+	latMin, lonMin := math.Inf(1), math.Inf(1)
+	latMax, lonMax := math.Inf(-1), math.Inf(-1)
+	tempLatMin, tempLatMax := math.Inf(1), math.Inf(-1)
+
+	fullyNorthern, fullySouthern := true, true
+
+	for _, p1 := range p.Points() {
+		if p1.Lon() < lonMin {
+			lonMin = p1.Lon()
+		}
+		if p1.Lon() > lonMax {
+			lonMax = p1.Lon()
+		}
+		if p1.Lat() < tempLatMin {
+			tempLatMin = p1.Lat()
+		}
+		if p1.Lat() > tempLatMax {
+			tempLatMax = p1.Lat()
+		}
+		if p1.Lat() < 0 {
+			fullyNorthern = false
+		}
+		if p1.Lat() > 0 {
+			fullySouthern = false
+		}
+	}
+	if fullyNorthern == fullySouthern {
+		panic("Polygon seems to be misformed.")
+	}
+	if fullyNorthern {
+		latMin = tempLatMin
+	}
+	if fullySouthern {
+		latMax = tempLatMax
+	}
+
+	phiMin, phiMax := math.Inf(1), math.Inf(-1)
+	for i := 0; i < p.Size()-1; i++ {
+		p1, p2 := p.At(i), p.At(i+1)
+		if p1.Lon() < lonMin {
+			lonMin = p1.Lon()
+		}
+		if p1.Lon() > lonMax {
+			lonMax = p1.Lon()
+		}
+		if p1.Lat() < tempLatMin {
+			tempLatMin = p1.Lat()
+		}
+		if p1.Lat() > tempLatMax {
+			tempLatMax = p1.Lat()
+		}
+		if p1.Lat() < 0 {
+			fullyNorthern = false
+		} else if p1.Lat() > 0 {
+			fullySouthern = false
+		}
+		azimuth := 0.0
+		if p1.Lambda() != p2.Lambda() {
+			tanAzimuth := (math.Sin(p1.Lambda()-p2.Lambda()) * math.Cos(p2.Phi())) / (math.Cos(p1.Phi())*math.Cos(p2.Phi()) - math.Sin(p1.Phi())*math.Cos(p2.Phi())*math.Cos(p2.Lambda()-p1.Lambda()))
+			azimuth = math.Atan(tanAzimuth) // maybe use math.Atan2()
+			bearing := Deg2Rad(p1.Bearing(p2))
+			if math.Abs(azimuth-bearing) < 0.1 {
+				fmt.Printf("Difference in calculating azimuth: %v", azimuth-bearing)
+			}
+		} else if p1.Lambda() == p2.Lambda() && p1.Phi() < p2.Phi() {
+			azimuth = 0
+		} else if p1.Lambda() == p2.Lambda() && p1.Phi() > p2.Phi() {
+			azimuth = math.Pi
+		} else if p1.Lambda() == p2.Lambda() && p1.Phi() == p2.Phi() {
+			panic("Identical points: azimuth is undefined.")
+		}
+
+		phi := math.Acos(math.Abs(math.Sin(azimuth) * math.Cos(p1.Phi())))
+		//phiMin = phiMax
+		if phi > phiMax {
+			phiMax = phi
+		}
+		if phi < phiMin {
+			phiMin = phi
+		}
+		if p1.Phi() > phiMax {
+			phiMax = p1.Phi()
+		}
+		if p1.Phi() < phiMin {
+			phiMin = p1.Phi()
+		}
+		if p2.Phi() > phiMax {
+			phiMax = p2.Phi()
+		}
+		if p2.Phi() < phiMin {
+			phiMin = p2.Phi()
+		}
+	}
+	if fullyNorthern == fullySouthern {
+		panic("Polygon seems to be misformed.")
+	}
+	if fullyNorthern {
+		latMin = tempLatMin
+		latMax = Rad2Deg(phiMax)
+	} else if fullySouthern {
+		latMax = tempLatMax
+		latMin = Rad2Deg(phiMin)
+	}
+
 	return BoundingBox{LatMin: latMin, LatMax: latMax, LonMin: lonMin, LonMax: lonMax}
 }
 
@@ -139,6 +248,7 @@ func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) 
 	// latitude of the edge at the test point's longitude and compare it to the
 	// latitude of Q
 	crossLat := start.LatitudeOnLineAtLon(end, point.Lon())
+	//crossLat := start.GreatCircleLatOfCrossingPoint(end, point.Lon())
 	intersects := crossLat >= point.Lat()
 
 	/*
