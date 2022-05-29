@@ -247,8 +247,8 @@ func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) 
 	// Only if the test point is north of that chord is it necessary to compute the
 	// latitude of the edge at the test point's longitude and compare it to the
 	// latitude of Q
-	crossLat := start.LatitudeOnLineAtLon(end, point.Lon())
-	//crossLat := start.GreatCircleLatOfCrossingPoint(end, point.Lon())
+	//crossLat := start.LatitudeOnLineAtLon(end, point.Lon())
+	crossLat := start.GreatCircleLatOfCrossingPoint(end, point.Lon())
 	intersects := crossLat >= point.Lat()
 
 	/*
