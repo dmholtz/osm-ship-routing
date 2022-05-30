@@ -122,7 +122,7 @@ func (p *Polygon) GreatCircleBoundingBox() BoundingBox {
 			phiMin = p2.Phi()
 		}
 	}
-	if fullyNorthern == fullySouthern {
+	if fullyNorthern && fullySouthern {
 		panic("Polygon seems to be misformed.")
 	}
 	if !fullyNorthern && !fullySouthern {
