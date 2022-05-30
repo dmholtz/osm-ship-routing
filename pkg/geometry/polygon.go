@@ -5,25 +5,8 @@ import (
 	"math"
 )
 
-var hit = 0
-var miss = 0
-
 // based on: Some Algorithms for Polygons on a Sphere (Robert.G .Chamberlain)
 // with code here: https://github.com/kellydunn/golang-geo/blob/master/polygon.go
-
-/* Some possible interface definitions
-type Area interface {
-	Contains(point *Point) bool
-}
-
-type Polygon interface {
-	At(index int) *Point
-	Add(point *Point)
-	Size() int
-	IsClosed() bool
-	BoundingBox() BoundingBox
-}
-*/
 
 type Polygon []*Point
 
@@ -107,7 +90,7 @@ func (p *Polygon) GreatCircleBoundingBox() BoundingBox {
 			azimuth = math.Atan(tanAzimuth) // maybe use math.Atan2()
 			bearing := Deg2Rad(p1.Bearing(p2))
 			if math.Abs(azimuth-bearing) > 0.1 {
-				fmt.Printf("Difference in calculating azimuth: %v", azimuth-bearing)
+				fmt.Printf("Difference in calculating azimuth: %v\n", azimuth-bearing)
 			}
 		} else if p1.Lambda() == p2.Lambda() && p1.Phi() < p2.Phi() {
 			azimuth = 0
