@@ -23,6 +23,12 @@ Tag `1.0.0` refers to the first submission and tag `latest` referst to the most 
 The `osm-ship-routing` service is written in [Go](https://go.dev/).
 Installing and running requires an installation of the Go Programming Language `v1.18` or later.
 
+### Setup
+
+1. Clone the repository
+2. Run `go mod download`
+3. Run `go build -o <BINARY> <PATH_TO_MAIN.GO>` to build a binary for a specified go file.
+
 ### Merge Coastlines
 
 ```bash
