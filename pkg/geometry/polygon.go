@@ -1,9 +1,6 @@
 package geometry
 
-import (
-	"fmt"
-	"math"
-)
+import "math"
 
 // based on: Some Algorithms for Polygons on a Sphere (Robert.G .Chamberlain)
 // with code here: https://github.com/kellydunn/golang-geo/blob/master/polygon.go
@@ -87,11 +84,10 @@ func (p *Polygon) GreatCircleBoundingBox() BoundingBox {
 		azimuth := 0.0
 		if p1.Lambda() != p2.Lambda() {
 			tanAzimuth := (math.Sin(p1.Lambda()-p2.Lambda()) * math.Cos(p2.Phi())) / (math.Cos(p1.Phi())*math.Cos(p2.Phi()) - math.Sin(p1.Phi())*math.Cos(p2.Phi())*math.Cos(p2.Lambda()-p1.Lambda()))
-			azimuth = math.Atan(tanAzimuth) // maybe use math.Atan2()
-			bearing := Deg2Rad(p1.Bearing(p2))
-			if math.Abs(azimuth-bearing) > 0.1 {
-				fmt.Printf("Difference in calculating azimuth: %v\n", azimuth-bearing)
-			}
+			azimuth = math.Atan(tanAzimuth)
+			// following could also work to calculate the azimuth
+			// the intermediate results are sometimes different, but the endresult is the same
+			// azimuth := Deg2Rad(p1.Bearing(p2))
 		} else if p1.Lambda() == p2.Lambda() && p1.Phi() < p2.Phi() {
 			azimuth = 0
 		} else if p1.Lambda() == p2.Lambda() && p1.Phi() > p2.Phi() {
@@ -102,7 +98,6 @@ func (p *Polygon) GreatCircleBoundingBox() BoundingBox {
 		}
 
 		phi := math.Acos(math.Abs(math.Sin(azimuth) * math.Cos(p1.Phi())))
-		//phiMin = phiMax
 		if phi > phiMax {
 			phiMax = phi
 		}
@@ -123,6 +118,7 @@ func (p *Polygon) GreatCircleBoundingBox() BoundingBox {
 		}
 	}
 	if fullyNorthern && fullySouthern {
+		// something went wrong
 		panic("Polygon seems to be misformed.")
 	}
 	if !fullyNorthern && !fullySouthern {
@@ -203,16 +199,17 @@ func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) 
 	// Only if the test point is north of that chord is it necessary to compute the
 	// latitude of the edge at the test point's longitude and compare it to the
 	// latitude of Q
-	//crossLat := start.LatitudeOnLineAtLon(end, point.Lon())
-	crossLat := start.GreatCircleLatOfCrossingPoint(end, point.Lon())
+	crossLat := start.LatitudeOnLineAtLon(end, point.Lon())
+	// following calculation uses the great circle segments
+	// This is slightly more accurate, but in this case, the grid is the same
+	// because of the resolution of the grid and the coastlines/polygons
+	//crossLat := start.GreatCircleLatOfCrossingPoint(end, point.Lon())
 	intersects := crossLat >= point.Lat()
 
-	/*
-		// following could be (slightly) faster
-		raySlope := (point.Lon() - start.Lon()) / (point.Lat() - start.Lat())
-		diagSlope := (end.Lon() - start.Lon()) / (end.Lat() - start.Lat())
-		return raySlope >= diagSlope
-	*/
+	// following could be (slightly) faster
+	//raySlope := (point.Lon() - start.Lon()) / (point.Lat() - start.Lat())
+	//diagSlope := (end.Lon() - start.Lon()) / (end.Lat() - start.Lat())
+	//return raySlope >= diagSlope
 
 	return intersects
 }

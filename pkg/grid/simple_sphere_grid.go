@@ -81,6 +81,8 @@ func (ssg *SimpleSphereGrid) landWaterTest(polygons []geo.Polygon) {
 	for i, polygon := range polygons {
 		go func(i int, polygon geo.Polygon) {
 			bboxes[i] = polygon.LatLonBoundingBox()
+			// Alternative bounding box calculation which uses great circle segments
+			// This should be a bit more accurate, but in our case, the result is the same
 			//bboxes[i] = polygon.GreatCircleBoundingBox()
 			wg.Done()
 		}(i, polygon)
@@ -100,8 +102,7 @@ func (ssg *SimpleSphereGrid) landWaterTest(polygons []geo.Polygon) {
 					// roughly check, whether the point is contained in the bounding box of the polygon
 					if bboxes[i].Contains(point) {
 						// precisely check, whether the polygon contains the point
-						contains := polygon.Contains(&point)
-						if contains {
+						if polygon.Contains(&point) {
 							ssg.isWater[idx] = false
 							break
 						}
