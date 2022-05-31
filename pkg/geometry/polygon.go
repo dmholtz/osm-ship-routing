@@ -81,26 +81,33 @@ func (p *Polygon) GreatCircleBoundingBox() BoundingBox {
 		} else if p1.Lat() > 0 {
 			fullySouthern = false
 		}
-		azimuth := 0.0
 		if p1.Lambda() != p2.Lambda() {
 			// formula from paper is slightly wrong, uses Cos instead of Sin at one point
-			azimuth = Deg2Rad(p1.Bearing(p2))
+			bearing := p1.Bearing(p2)
+			phi := math.Acos(math.Abs(math.Sin(Deg2Rad(bearing)) * math.Cos(p1.Phi())))
+			// if direction pointed downwards, use the negative value
+			if bearing > 90 && bearing < 270 {
+				phi = -phi
+			}
+
+			// set extreme points of great circle arc as potential polygon boundaries
+			if phi > phiMax {
+				phiMax = phi
+			}
+			if phi < phiMin {
+				phiMin = phi
+			}
 		} else if p1.Lambda() == p2.Lambda() && p1.Phi() < p2.Phi() {
-			azimuth = 0
+			// bearing = 0
+			// nothing to do, point coordinates will set the polygon boundaries
 		} else if p1.Lambda() == p2.Lambda() && p1.Phi() > p2.Phi() {
-			azimuth = math.Pi
+			// bearing = 180
+			// nothing to do, point coordinates will set the polygon boundaries
 		} else if p1.Lambda() == p2.Lambda() && p1.Phi() == p2.Phi() {
 			continue
-			//panic("Identical points: azimuth is undefined.")
+			//panic("Identical points: bearing is undefined.")
 		}
 
-		phi := math.Acos(math.Abs(math.Sin(azimuth) * math.Cos(p1.Phi())))
-		if phi > phiMax {
-			phiMax = phi
-		}
-		if phi < phiMin {
-			phiMin = phi
-		}
 		if p1.Phi() > phiMax {
 			phiMax = p1.Phi()
 		}
