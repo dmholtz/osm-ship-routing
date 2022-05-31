@@ -83,11 +83,8 @@ func (p *Polygon) GreatCircleBoundingBox() BoundingBox {
 		}
 		azimuth := 0.0
 		if p1.Lambda() != p2.Lambda() {
-			tanAzimuth := (math.Sin(p2.Lambda()-p1.Lambda()) * math.Cos(p2.Phi())) / (math.Cos(p1.Phi())*math.Cos(p2.Phi()) - math.Sin(p1.Phi())*math.Cos(p2.Phi())*math.Cos(p2.Lambda()-p1.Lambda()))
-			azimuth = math.Atan(tanAzimuth)
-			// following could also work to calculate the azimuth
-			// the intermediate results are sometimes different, but the endresult is the same
-			// azimuth := Deg2Rad(p1.Bearing(p2))
+			// formula from paper is slightly wrong, uses Cos instead of Sin at one point
+			azimuth = Deg2Rad(p1.Bearing(p2))
 		} else if p1.Lambda() == p2.Lambda() && p1.Phi() < p2.Phi() {
 			azimuth = 0
 		} else if p1.Lambda() == p2.Lambda() && p1.Phi() > p2.Phi() {
