@@ -2,23 +2,8 @@ package geometry
 
 import "math"
 
-// mostly based on this: https://github.com/kellydunn/golang-geo/blob/master/polygon.go
-// and partly on this (not tested, very old): Locating a Point on a Spherical Surface Relative to a Spherical Polygon of Arbitrary Shape
-// the Fortran translation can maybe get removed
-
-/* Some possible interface definitions
-type Area interface {
-	Contains(point *Point) bool
-}
-
-type Polygon interface {
-	At(index int) *Point
-	Add(point *Point)
-	Size() int
-	IsClosed() bool
-	BoundingBox() BoundingBox
-}
-*/
+// based on: Some Algorithms for Polygons on a Sphere (Robert.G .Chamberlain)
+// with code here: https://github.com/kellydunn/golang-geo/blob/master/polygon.go
 
 type Polygon []*Point
 
@@ -50,7 +35,7 @@ func (p *Polygon) IsClosed() bool {
 	return true
 }
 
-func (p *Polygon) BoundingBox() BoundingBox {
+func (p *Polygon) LatLonBoundingBox() BoundingBox {
 	latMin, lonMin := math.Inf(1), math.Inf(1)
 	latMax, lonMax := math.Inf(-1), math.Inf(-1)
 	for _, point := range p.Points() {
@@ -70,6 +55,83 @@ func (p *Polygon) BoundingBox() BoundingBox {
 	return BoundingBox{LatMin: latMin, LatMax: latMax, LonMin: lonMin, LonMax: lonMax}
 }
 
+func (p *Polygon) GreatCircleBoundingBox() BoundingBox {
+	latMin, lonMin := math.Inf(1), math.Inf(1)
+	latMax, lonMax := math.Inf(-1), math.Inf(-1)
+	tempLatMin, tempLatMax := math.Inf(1), math.Inf(-1)
+	fullyNorthern, fullySouthern := true, true
+	phiMin, phiMax := math.Inf(1), math.Inf(-1)
+
+	for i := 0; i < p.Size()-1; i++ {
+		p1, p2 := p.At(i), p.At(i+1)
+		if p1.Lon() < lonMin {
+			lonMin = p1.Lon()
+		}
+		if p1.Lon() > lonMax {
+			lonMax = p1.Lon()
+		}
+		if p1.Lat() < tempLatMin {
+			tempLatMin = p1.Lat()
+		}
+		if p1.Lat() > tempLatMax {
+			tempLatMax = p1.Lat()
+		}
+		if p1.Lat() < 0 {
+			fullyNorthern = false
+		} else if p1.Lat() > 0 {
+			fullySouthern = false
+		}
+		azimuth := 0.0
+		if p1.Lambda() != p2.Lambda() {
+			// formula from paper is slightly wrong, uses Cos instead of Sin at one point
+			azimuth = Deg2Rad(p1.Bearing(p2))
+		} else if p1.Lambda() == p2.Lambda() && p1.Phi() < p2.Phi() {
+			azimuth = 0
+		} else if p1.Lambda() == p2.Lambda() && p1.Phi() > p2.Phi() {
+			azimuth = math.Pi
+		} else if p1.Lambda() == p2.Lambda() && p1.Phi() == p2.Phi() {
+			continue
+			//panic("Identical points: azimuth is undefined.")
+		}
+
+		phi := math.Acos(math.Abs(math.Sin(azimuth) * math.Cos(p1.Phi())))
+		if phi > phiMax {
+			phiMax = phi
+		}
+		if phi < phiMin {
+			phiMin = phi
+		}
+		if p1.Phi() > phiMax {
+			phiMax = p1.Phi()
+		}
+		if p1.Phi() < phiMin {
+			phiMin = p1.Phi()
+		}
+		if p2.Phi() > phiMax {
+			phiMax = p2.Phi()
+		}
+		if p2.Phi() < phiMin {
+			phiMin = p2.Phi()
+		}
+	}
+	if fullyNorthern && fullySouthern {
+		// something went wrong
+		panic("Polygon seems to be misformed.")
+	}
+	if !fullyNorthern && !fullySouthern {
+		latMax = Rad2Deg(phiMax)
+		latMin = Rad2Deg(phiMin)
+	} else if fullyNorthern {
+		latMin = tempLatMin
+		latMax = Rad2Deg(phiMax)
+	} else if fullySouthern {
+		latMax = tempLatMax
+		latMin = Rad2Deg(phiMin)
+	}
+
+	return BoundingBox{LatMin: latMin, LatMax: latMax, LonMin: lonMin, LonMax: lonMax}
+}
+
 func (p *Polygon) Contains(point *Point) bool {
 	if !p.IsClosed() {
 		return false
@@ -78,7 +140,9 @@ func (p *Polygon) Contains(point *Point) bool {
 	start := p.Size() - 1
 	end := 0
 
+	// check the [start,end] edge for intersection with the test ray
 	contains := p.intersectsWithRaycast(point, p.At(start), p.At(end))
+	// check each other edge for intersection with the test ray
 	for i := 1; i < p.Size(); i++ {
 		if p.intersectsWithRaycast(point, p.At(i-1), p.At(i)) {
 			contains = !contains
@@ -88,131 +152,61 @@ func (p *Polygon) Contains(point *Point) bool {
 }
 
 func (p *Polygon) intersectsWithRaycast(point *Point, start *Point, end *Point) bool {
+	// based on paper: Some Algorithms for Polygons on a Sphere (Robert.G .Chamberlain)
+
+	// ensure that start has the lower longitude
 	if start.Lon() > end.Lon() {
 		start, end = end, start
 	}
+
+	// Move the point a little bit to the east to avoid miscounting
+	// -> those edges whose other end is westward will be counted,
+	// while those whose other end is not westward will not
 	for point.Lon() == start.Lon() || point.Lon() == end.Lon() {
 		newLon := math.Nextafter(point.Lon(), math.Inf(1))
 		point = NewPoint(point.Lat(), newLon)
 	}
+
+	// If the longitude of the ray is not between the longitudes of the ends of the edge,
+	// there is no intersection
 	if point.Lon() < start.Lon() || point.Lon() > end.Lon() {
 		return false
 	}
+
+	// decide which point of the edge is norhterly
 	if start.Lat() > end.Lat() {
 		if point.Lat() > start.Lat() {
+			// the point is above the edge -> it can't intersect with the edge
 			return false
 		}
 		if point.Lat() < end.Lat() {
+			// the point's ray intersects with the edge
 			return true
 		}
 	} else {
 		if point.Lat() > end.Lat() {
+			// the point is above the edge -> it can't intersect with the edge
 			return false
 		}
 		if point.Lat() < start.Lat() {
+			// the point's ray intersects with the edge
 			return true
 		}
 	}
-	raySlope := (point.Lon() - start.Lon()) / (point.Lat() - start.Lat())
-	diagSlope := (end.Lon() - start.Lon()) / (end.Lat() - start.Lat())
+	// Only if the test point is north of that chord is it necessary to compute the
+	// latitude of the edge at the test point's longitude and compare it to the
+	// latitude of Q
+	crossLat := start.LatitudeOnLineAtLon(end, point.Lon())
+	// following calculation uses the great circle segments
+	// This is slightly more accurate, but in this case, the grid is the same
+	// because of the resolution of the grid and the coastlines/polygons
+	//crossLat := start.GreatCircleLatOfCrossingPoint(end, point.Lon())
+	intersects := crossLat >= point.Lat()
 
-	return raySlope >= diagSlope
-}
+	// following could be (slightly) faster
+	//raySlope := (point.Lon() - start.Lon()) / (point.Lat() - start.Lat())
+	//diagSlope := (end.Lon() - start.Lon()) / (end.Lat() - start.Lat())
+	//return raySlope >= diagSlope
 
-func locatePointRelBoundary(p *Point, xc *Point, boundary int64, nv_c int64, tlonv []float64) int {
-	var dellon float64
-	var crossCounter int
-	var polygon *Polygon
-	var transformedLon []float64
-	if boundary == 0 {
-		panic("Boundary not defined")
-	}
-	if p.Lat() == -xc.Lat() {
-		dellon = p.Lon() - xc.Lon()
-		if dellon < -180 {
-			dellon += 360
-		} else if dellon > 180 {
-			dellon -= 360
-		}
-		if math.Abs(dellon) == 180 {
-			panic("P is antipodal to X: P relative to S is undertermined")
-		}
-	}
-
-	crossCounter = 0
-
-	if p.Lat() == xc.Lat() && p.Lon() == xc.Lon() {
-		return 1
-	}
-
-	tlonP := transformLon(xc.Lat(), xc.Lon(), p.Lat(), p.Lon())
-	for i := 0; i < polygon.Size()-1; i++ {
-		vALat := polygon.At(i).Lat()
-		vALon := polygon.At(i).Lon()
-		tlonA := transformedLon[i]
-		vBLat := polygon.At(i + 1).Lat()
-		vBLon := polygon.At(i + 1).Lon()
-		tlonB := transformedLon[i+1]
-
-		strike := 0
-		if tlonP == tlonA {
-			strike = 1
-		} else {
-			brngAB := eastOrWest(NewPoint(0, tlonA), NewPoint(0, tlonB))
-			brngAP := eastOrWest(NewPoint(0, tlonA), NewPoint(0, tlonP))
-			brngPB := eastOrWest(NewPoint(0, tlonP), NewPoint(0, tlonB))
-			if brngAP == brngAB && brngPB == brngAB {
-				strike = 1
-			}
-		}
-		if strike == 1 {
-			if p.Lat() == vALat && p.Lon() == vALon {
-				return 2 // P lies on a vertex of S
-			}
-			tlon_X := transformLon(vALat, vALon, xc.Lat(), xc.Lon())
-			tlon_B := transformLon(vALat, vALon, vBLat, vBLon)
-			tlon_P := transformLon(vALat, vALon, p.Lat(), p.Lon())
-			if tlon_P == tlon_B {
-				return 2 // P lies on side of S
-			}
-			brng_BX := eastOrWest(NewPoint(0, tlon_B), NewPoint(0, tlon_X))
-			brng_BP := eastOrWest(NewPoint(0, tlon_B), NewPoint(0, tlon_P))
-			if brng_BX == -brng_BP {
-				crossCounter++
-			}
-		}
-	}
-	if crossCounter%2 == 0 {
-		return 1
-	}
-	return 0
-}
-
-// Determine the 'longitude' of a Point Q in a geographic coordinate system for which point P acts as a 'north pole'
-func transformLon(plat, plon, qlat, qlon float64) float64 {
-	dtr := math.Pi / 180.0
-	if plat == 90 {
-		return qlon
-	}
-	t := math.Sin((qlon-plon)*dtr) * math.Cos(qlat*dtr)
-	b := math.Sin(dtr*qlat)*math.Cos(plat*dtr) - math.Cos(qlat*dtr)*math.Sin(plat*dtr)*math.Cos((qlon-plon)*dtr)
-	return math.Atan2(t, b) / dtr
-
-}
-
-// Determine if the shorted path form c to d is east or west
-func eastOrWest(c *Point, d *Point) int {
-	delta := d.Lon() - c.Lon()
-	if delta > 180 {
-		delta -= 360
-	} else if delta < -180 {
-		delta += 360
-	}
-	if delta > 0 && delta != 180 {
-		return -1 // d is west of c
-	}
-	if delta < 0 && delta != -180 {
-		return 1 // d is east of c
-	}
-	return 0 // neither is or west -> antipode or same longitude
+	return intersects
 }

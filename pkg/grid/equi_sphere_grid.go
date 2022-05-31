@@ -97,7 +97,10 @@ func (esg *EquiSphereGrid) landWaterTest(polygons []geo.Polygon) {
 	wg.Add(len(polygons))
 	for i, polygon := range polygons {
 		go func(i int, polygon geo.Polygon) {
-			bboxes[i] = polygon.BoundingBox()
+			bboxes[i] = polygon.LatLonBoundingBox()
+			// Alternative bounding box calculation which uses great circle segments
+			// This should be a bit more accurate, but in our case, the result is the same
+			//bboxes[i] = polygon.GreatCircleBoundingBox()
 			wg.Done()
 		}(i, polygon)
 	}
