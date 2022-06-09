@@ -177,6 +177,7 @@ func (esg *EquiSphereGrid) neighborsOf(cell IndexTupel) []IndexTupel {
 	// northern neighbor(s)
 	if cell.LatRow > 0 {
 		lonColNumeric := float64(cell.lonCol*len(esg.points[cell.LatRow-1])) / float64(len(esg.points[cell.LatRow]))
+		// number of northern neighbors depends on the type of the mesh
 		if esg.meshType == FOUR_NEIGHBORS {
 			lonCol := int(math.Round(lonColNumeric)) % len(esg.points[cell.LatRow-1])
 			neighbors = append(neighbors, IndexTupel{LatRow: cell.LatRow - 1, lonCol: lonCol})
