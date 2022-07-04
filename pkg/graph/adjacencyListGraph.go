@@ -5,7 +5,7 @@ import "fmt"
 // Implementation for dynamic graphs
 type AdjacencyListGraph struct {
 	Nodes     []Node
-	Edges     [][]outgoingEdge
+	Edges     [][]HalfEdge
 	edgeCount int
 }
 
@@ -27,6 +27,13 @@ func (alg *AdjacencyListGraph) GetEdgesFrom(id NodeId) []Edge {
 	return outgoingEdges
 }
 
+func (alg *AdjacencyListGraph) GetHalfEdgesFrom(id NodeId) HalfEdges {
+	if id < 0 || id >= alg.NodeCount() {
+		panic(id)
+	}
+	return alg.Edges[id]
+}
+
 func (alg *AdjacencyListGraph) NodeCount() int {
 	return len(alg.Nodes)
 }
@@ -37,7 +44,7 @@ func (alg *AdjacencyListGraph) EdgeCount() int {
 
 func (alg *AdjacencyListGraph) AddNode(n Node) {
 	alg.Nodes = append(alg.Nodes, n)
-	alg.Edges = append(alg.Edges, make([]outgoingEdge, 0))
+	alg.Edges = append(alg.Edges, make([]HalfEdge, 0))
 }
 
 func (alg *AdjacencyListGraph) AddEdge(e Edge) {

@@ -5,13 +5,13 @@ import "fmt"
 // Implementation for static graphs
 type AdjacencyArrayGraph struct {
 	Nodes   []Node
-	Edges   []outgoingEdge
+	Edges   []HalfEdge
 	Offsets []int
 }
 
 func NewAdjacencyArrayFromGraph(g Graph) *AdjacencyArrayGraph {
 	nodes := make([]Node, 0)
-	edges := make([]outgoingEdge, 0)
+	edges := make([]HalfEdge, 0)
 	offsets := make([]int, g.NodeCount()+1, g.NodeCount()+1)
 
 	for i := 0; i < g.NodeCount(); i++ {
@@ -47,6 +47,13 @@ func (aag *AdjacencyArrayGraph) GetEdgesFrom(id NodeId) []Edge {
 		edges = append(edges, aag.Edges[i].toEdge(id))
 	}
 	return edges
+}
+
+func (aag *AdjacencyArrayGraph) GetHalfEdgesFrom(id NodeId) []HalfEdge {
+	if id < 0 || id >= aag.NodeCount() {
+		panic(fmt.Sprintf("NodeId %d is not contained in the graph.", id))
+	}
+	return aag.Edges[aag.Offsets[id]:aag.Offsets[id+1]]
 }
 
 func (aag *AdjacencyArrayGraph) NodeCount() int {

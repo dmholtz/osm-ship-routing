@@ -21,24 +21,25 @@ func (e Edge) Invert() Edge {
 	return Edge{From: e.To, To: e.From, Distance: e.Distance}
 }
 
-func (e Edge) toOutgoingEdge() outgoingEdge {
-	return outgoingEdge{To: e.To, Distance: e.Distance}
+func (e Edge) toOutgoingEdge() HalfEdge {
+	return HalfEdge{To: e.To, Distance: e.Distance}
 }
 
-type outgoingEdge struct {
+type HalfEdge struct {
 	To       NodeId
 	Distance int
 }
 
-func (oe outgoingEdge) toEdge(from NodeId) Edge {
+func (oe HalfEdge) toEdge(from NodeId) Edge {
 	return Edge{From: from, To: oe.To, Distance: oe.Distance}
 }
 
-type outgoingEdges = []outgoingEdge
+type HalfEdges = []HalfEdge
 
 type Graph interface {
 	GetNode(id NodeId) Node
 	GetEdgesFrom(id NodeId) []Edge
+	GetHalfEdgesFrom(id NodeId) []HalfEdge
 	NodeCount() int
 	EdgeCount() int
 }
