@@ -74,7 +74,7 @@ func AStar(g Graph, origin, destination int) ([]int, int) {
 		currentPqItem := heap.Pop(&pq).(*AStarPriorityQueueItem)
 		currentNodeId := currentPqItem.itemId
 
-		for _, edge := range g.GetEdgesFrom(currentNodeId) {
+		for _, edge := range g.GetHalfEdgesFrom(currentNodeId) {
 			successor := edge.To
 
 			if dijkstraItems[successor] == nil {

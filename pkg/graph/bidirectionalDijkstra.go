@@ -39,7 +39,7 @@ func BidirectionalDijkstra(g Graph, origin, destination int) ([]int, int) {
 		}
 
 		// forward search
-		for _, edge := range g.GetEdgesFrom(forwardNodeId) {
+		for _, edge := range g.GetHalfEdgesFrom(forwardNodeId) {
 			successor := edge.To
 
 			if dijkstraItemsForward[successor] == nil {
@@ -62,7 +62,7 @@ func BidirectionalDijkstra(g Graph, origin, destination int) ([]int, int) {
 		}
 
 		// backward search
-		for _, edge := range g.GetEdgesFrom(backwardNodeId) {
+		for _, edge := range g.GetHalfEdgesFrom(backwardNodeId) {
 			successor := edge.To
 
 			if dijkstraItemsBackward[successor] == nil {
