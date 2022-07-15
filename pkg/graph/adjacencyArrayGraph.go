@@ -63,3 +63,66 @@ func (aag *AdjacencyArrayGraph) NodeCount() int {
 func (aag *AdjacencyArrayGraph) EdgeCount() int {
 	return len(aag.Edges)
 }
+
+// Implementation of static graphs with arc flags
+type FlaggedAdjacencyArrayGraph struct {
+	Nodes   []Node
+	Edges   []FlaggedHalfEdge
+	Offsets []int
+
+	Partitions []PartitionId
+}
+
+func NewFlaggedAdjacencyArrayFromGraph(fg FlaggedGraph) *FlaggedAdjacencyArrayGraph {
+	nodes := make([]Node, 0)
+	edges := make([]FlaggedHalfEdge, 0)
+	offsets := make([]int, fg.NodeCount()+1, fg.NodeCount()+1)
+
+	partitions := make([]PartitionId, fg.NodeCount(), fg.NodeCount())
+
+	for i := 0; i < fg.NodeCount(); i++ {
+		// add node and copy partition
+		nodes = append(nodes, fg.GetNode(i))
+		partitions[i] = fg.GetPartition(i)
+
+		// add all edges of node
+		for _, edge := range fg.GetHalfEdgesFrom(i) {
+			edges = append(edges, edge)
+		}
+
+		// set stop-offset
+		offsets[i+1] = len(edges)
+	}
+
+	faag := FlaggedAdjacencyArrayGraph{Nodes: nodes, Edges: edges, Offsets: offsets, Partitions: partitions}
+	return &faag
+}
+
+func (faag *FlaggedAdjacencyArrayGraph) GetNode(id NodeId) Node {
+	if id < 0 || id >= faag.NodeCount() {
+		panic(fmt.Sprintf("NodeId %d is not contained in the graph.", id))
+	}
+	return faag.Nodes[id]
+}
+
+func (faag *FlaggedAdjacencyArrayGraph) GetHalfEdgesFrom(id NodeId) []FlaggedHalfEdge {
+	if id < 0 || id >= faag.NodeCount() {
+		panic(fmt.Sprintf("NodeId %d is not contained in the graph.", id))
+	}
+	return faag.Edges[faag.Offsets[id]:faag.Offsets[id+1]]
+}
+
+func (faag *FlaggedAdjacencyArrayGraph) NodeCount() int {
+	return len(faag.Nodes)
+}
+
+func (faag *FlaggedAdjacencyArrayGraph) EdgeCount() int {
+	return len(faag.Edges)
+}
+
+func (faag *FlaggedAdjacencyArrayGraph) GetPartition(id NodeId) PartitionId {
+	if id < 0 || id >= faag.NodeCount() {
+		panic(id)
+	}
+	return faag.Partitions[id]
+}
