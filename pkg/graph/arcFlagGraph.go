@@ -38,6 +38,13 @@ type FlaggedGraph interface {
 	GetPartition(id NodeId) PartitionId
 }
 
+type DynamicFlaggedGraph interface {
+	FlaggedGraph
+
+	AddNode(node Node)
+	AddHalfEdge(fhe FlaggedHalfEdge)
+}
+
 // Implementation for static graphs using an adjacency array
 type ArcFlagGraph struct {
 	Nodes      []Node

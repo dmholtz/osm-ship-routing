@@ -19,8 +19,8 @@ func NewAdjacencyArrayFromGraph(g Graph) *AdjacencyArrayGraph {
 		nodes = append(nodes, g.GetNode(i))
 
 		// add all edges of node
-		for _, edge := range g.GetEdgesFrom(i) {
-			edges = append(edges, edge.toOutgoingEdge())
+		for _, halfEdge := range g.GetHalfEdgesFrom(i) {
+			edges = append(edges, halfEdge)
 		}
 
 		// set stop-offset
@@ -36,17 +36,6 @@ func (aag *AdjacencyArrayGraph) GetNode(id NodeId) Node {
 		panic(fmt.Sprintf("NodeId %d is not contained in the graph.", id))
 	}
 	return aag.Nodes[id]
-}
-
-func (aag *AdjacencyArrayGraph) GetEdgesFrom(id NodeId) []Edge {
-	if id < 0 || id >= aag.NodeCount() {
-		panic(fmt.Sprintf("NodeId %d is not contained in the graph.", id))
-	}
-	edges := make([]Edge, 0)
-	for i := aag.Offsets[id]; i < aag.Offsets[id+1]; i++ {
-		edges = append(edges, aag.Edges[i].toEdge(id))
-	}
-	return edges
 }
 
 func (aag *AdjacencyArrayGraph) GetHalfEdgesFrom(id NodeId) []HalfEdge {

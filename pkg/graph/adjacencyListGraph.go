@@ -16,17 +16,6 @@ func (alg *AdjacencyListGraph) GetNode(id NodeId) Node {
 	return alg.Nodes[id]
 }
 
-func (alg *AdjacencyListGraph) GetEdgesFrom(id NodeId) []Edge {
-	if id < 0 || id >= alg.NodeCount() {
-		panic(id)
-	}
-	outgoingEdges := make([]Edge, 0)
-	for _, outgoingEdge := range alg.Edges[id] {
-		outgoingEdges = append(outgoingEdges, outgoingEdge.toEdge(id))
-	}
-	return outgoingEdges
-}
-
 func (alg *AdjacencyListGraph) GetHalfEdgesFrom(id NodeId) HalfEdges {
 	if id < 0 || id >= alg.NodeCount() {
 		panic(id)
@@ -58,7 +47,7 @@ func (alg *AdjacencyListGraph) AddEdge(e Edge) {
 			return // ignore duplicate edges
 		}
 	}
-	alg.Edges[e.From] = append(alg.Edges[e.From], e.toOutgoingEdge())
+	alg.Edges[e.From] = append(alg.Edges[e.From], e.toHalfEdge())
 	alg.edgeCount++
 }
 

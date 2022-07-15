@@ -28,9 +28,9 @@ func WriteFmi(g Graph, filename string) {
 	}
 
 	// list all edges structured as "fromId targetId distance"
-	for i := 0; i < g.NodeCount(); i++ {
-		for _, edge := range g.GetEdgesFrom(i) {
-			writer.WriteString(fmt.Sprintf("%d %d %d\n", edge.From, edge.To, edge.Distance))
+	for id := 0; id < g.NodeCount(); id++ {
+		for _, halfEdge := range g.GetHalfEdgesFrom(id) {
+			writer.WriteString(fmt.Sprintf("%d %d %d\n", id, halfEdge.To, halfEdge.Distance))
 		}
 	}
 
