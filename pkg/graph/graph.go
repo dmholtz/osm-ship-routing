@@ -21,7 +21,7 @@ func (e Edge) Invert() Edge {
 	return Edge{From: e.To, To: e.From, Distance: e.Distance}
 }
 
-func (e Edge) toOutgoingEdge() HalfEdge {
+func (e Edge) toHalfEdge() HalfEdge {
 	return HalfEdge{To: e.To, Distance: e.Distance}
 }
 
@@ -38,7 +38,6 @@ type HalfEdges = []HalfEdge
 
 type Graph interface {
 	GetNode(id NodeId) Node
-	GetEdgesFrom(id NodeId) []Edge
 	GetHalfEdgesFrom(id NodeId) []HalfEdge
 	NodeCount() int
 	EdgeCount() int
