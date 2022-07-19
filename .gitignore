@@ -31,5 +31,8 @@
 !Dockerfile
 !.dockerignore
 
+# testdata
+!**/testdata/*.fmi
+
 # ...even if they are in subdirectories
 !*/
