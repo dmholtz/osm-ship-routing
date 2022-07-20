@@ -2,7 +2,6 @@ package graph
 
 import (
 	"container/heap"
-	"fmt"
 )
 
 type TreeNode struct {
@@ -10,7 +9,8 @@ type TreeNode struct {
 	children []*TreeNode
 }
 
-func ShortestPathTree(g Graph, origin int) TreeNode {
+// TODO make graph generic
+func ShortestPathTree(g FlaggedGraph, origin int) TreeNode {
 	dijkstraItems := make([]*PriorityQueueItem, g.NodeCount(), g.NodeCount())
 	originItem := PriorityQueueItem{itemId: origin, priority: 0, predecessor: -1, index: -1}
 	dijkstraItems[origin] = &originItem
@@ -40,12 +40,12 @@ func ShortestPathTree(g Graph, origin int) TreeNode {
 			successor := edge.To
 
 			if dijkstraItems[successor] == nil {
-				newPriority := dijkstraItems[currentNodeId].priority + edge.Distance
+				newPriority := dijkstraItems[currentNodeId].priority + edge.Weight
 				pqItem := PriorityQueueItem{itemId: successor, priority: newPriority, predecessor: currentNodeId, index: -1}
 				dijkstraItems[successor] = &pqItem
 				heap.Push(&pq, &pqItem)
 			} else {
-				if updatedDistance := dijkstraItems[currentNodeId].priority + edge.Distance; updatedDistance < dijkstraItems[successor].priority {
+				if updatedDistance := dijkstraItems[currentNodeId].priority + edge.Weight; updatedDistance < dijkstraItems[successor].priority {
 					pq.update(dijkstraItems[successor], updatedDistance)
 					dijkstraItems[successor].predecessor = currentNodeId
 				}
@@ -53,12 +53,11 @@ func ShortestPathTree(g Graph, origin int) TreeNode {
 		}
 	}
 
-	for _, t := range successors {
-		for _, child := range t.children {
-			fmt.Printf("%d -> %d\n", t.id, child.id)
-		}
-
-	}
+	//for _, t := range successors {
+	//	for _, child := range t.children {
+	//		fmt.Printf("%d -> %d\n", t.id, child.id)
+	//	}
+	//}
 
 	return *successors[origin]
 }

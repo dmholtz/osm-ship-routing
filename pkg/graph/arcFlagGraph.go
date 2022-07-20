@@ -29,6 +29,10 @@ func (fhe *FlaggedHalfEdge) AddFlag(p PartitionId) {
 	fhe.Flag = fhe.Flag | (1 << p)
 }
 
+func (fhe *FlaggedHalfEdge) ResetFlag() {
+	fhe.Flag = 0
+}
+
 type FlaggedGraph interface {
 	GetNode(id NodeId) Node
 	GetHalfEdgesFrom(id NodeId) []FlaggedHalfEdge
@@ -43,34 +47,4 @@ type DynamicFlaggedGraph interface {
 
 	AddNode(node Node)
 	AddHalfEdge(fhe FlaggedHalfEdge)
-}
-
-// Implementation for static graphs using an adjacency array
-type ArcFlagGraph struct {
-	Nodes      []Node
-	Partitions []PartitionId
-	Edges      []FlaggedHalfEdge
-	Offsets    []int
-}
-
-func (afg *ArcFlagGraph) GetNode(id NodeId) Node {
-	if id < 0 || id >= afg.NodeCount() {
-		panic(fmt.Sprintf("NodeId %d is not contained in the graph.", id))
-	}
-	return afg.Nodes[id]
-}
-
-func (afg *ArcFlagGraph) GetHalfEdgesFrom(id NodeId) []FlaggedHalfEdge {
-	if id < 0 || id >= afg.NodeCount() {
-		panic(fmt.Sprintf("NodeId %d is not contained in the graph.", id))
-	}
-	return afg.Edges[afg.Offsets[id]:afg.Offsets[id+1]]
-}
-
-func (afg *ArcFlagGraph) NodeCount() int {
-	return len(afg.Nodes)
-}
-
-func (afg *ArcFlagGraph) EdgeCount() int {
-	return len(afg.Edges)
 }
