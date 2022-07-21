@@ -23,12 +23,13 @@ func main() {
 func benchmark(aag *graph.AdjacencyArrayGraph, n int) {
 
 	runtime := 0
+	totalPqPops := 0
 	for i := 0; i < n; i++ {
 		origin := rand.Intn(aag.NodeCount())
 		destination := rand.Intn(aag.NodeCount())
 
 		start := time.Now()
-		path, length := graph.Dijkstra(aag, origin, destination)
+		path, length, pqPops := graph.Dijkstra(aag, origin, destination)
 		elapsed := time.Since(start)
 		fmt.Printf("[TIME-Navigate] = %s\n", elapsed)
 
@@ -39,6 +40,8 @@ func benchmark(aag *graph.AdjacencyArrayGraph, n int) {
 		}
 
 		runtime += int(elapsed)
+		totalPqPops += pqPops
 	}
-	fmt.Printf("Average runtime: %.3fms", float64(runtime/n)/1000000)
+	fmt.Printf("Average runtime: %.3fms\n", float64(runtime/n)/1000000)
+	fmt.Printf("Average number of PQ-pops: %d\n", totalPqPops/n)
 }

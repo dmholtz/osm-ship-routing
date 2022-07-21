@@ -116,6 +116,35 @@ func NewAdjacencyArrayFromFmi(filename string) *AdjacencyArrayGraph {
 	return aag
 }
 
+func WritePartitionedFmi(fg FlaggedGraph, filename string) {
+
+	file, cErr := os.Create(filename)
+
+	if cErr != nil {
+		log.Fatal(cErr)
+	}
+	writer := bufio.NewWriter(file)
+
+	// write number of nodes and number of edges
+	writer.WriteString(fmt.Sprintf("%d\n", fg.NodeCount()))
+	writer.WriteString(fmt.Sprintf("%d\n", fg.EdgeCount()))
+
+	// list all nodes structured as "id lat lon partition"
+	for i := 0; i < fg.NodeCount(); i++ {
+		node := fg.GetNode(i)
+		writer.WriteString(fmt.Sprintf("%d %f %f %d\n", i, node.Lat, node.Lon, fg.GetPartition(i)))
+	}
+
+	// list all edges structured as "fromId targetId weight flag"
+	for id := 0; id < fg.NodeCount(); id++ {
+		for _, halfEdge := range fg.GetHalfEdgesFrom(id) {
+			writer.WriteString(fmt.Sprintf("%d %d %d %d\n", id, halfEdge.To, halfEdge.Weight, halfEdge.Flag))
+		}
+	}
+
+	writer.Flush()
+}
+
 func NewFlaggedAdjacencyListFromFmi(filename string) *FlaggedAdjacencyListGraph {
 
 	file, err := os.Open(filename)

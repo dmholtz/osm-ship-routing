@@ -50,7 +50,7 @@ func (h *PriorityQueue) update(pqItem *PriorityQueueItem, newPriority int) {
 	heap.Fix(h, pqItem.index)
 }
 
-func Dijkstra(g Graph, origin, destination int) ([]int, int) {
+func Dijkstra(g Graph, origin, destination int) ([]int, int, int) {
 	dijkstraItems := make([]*PriorityQueueItem, g.NodeCount(), g.NodeCount())
 	originItem := PriorityQueueItem{itemId: origin, priority: 0, predecessor: -1, index: -1}
 	dijkstraItems[origin] = &originItem
@@ -59,9 +59,11 @@ func Dijkstra(g Graph, origin, destination int) ([]int, int) {
 	heap.Init(&pq)
 	heap.Push(&pq, dijkstraItems[origin])
 
+	pqPops := 0
 	for len(pq) > 0 {
 		currentPqItem := heap.Pop(&pq).(*PriorityQueueItem)
 		currentNodeId := currentPqItem.itemId
+		pqPops++
 
 		for _, edge := range g.GetHalfEdgesFrom(currentNodeId) {
 			successor := edge.To
@@ -92,5 +94,5 @@ func Dijkstra(g Graph, origin, destination int) ([]int, int) {
 			path = append([]int{nodeId}, path...)
 		}
 	}
-	return path, length
+	return path, length, pqPops
 }

@@ -40,9 +40,9 @@ func ComputeArcFlags(fg *FlaggedAdjacencyArrayGraph) FlaggedGraph {
 	transposedGraph := TransposeGraph(fg)
 
 	for partition, set := range boundaryNodeSets {
-		//	fmt.Printf("%d: ", partition)
+		fmt.Printf("Partition %d...\n", partition)
 		for boundaryNodeId := range set {
-			fmt.Printf("Check boundary node %d in region %d\n", boundaryNodeId, partition)
+			//fmt.Printf("Check boundary node %d in region %d\n", boundaryNodeId, partition)
 			// calculate in reverse graph
 			tree := ShortestPathTree(transposedGraph, boundaryNodeId)
 
@@ -50,7 +50,6 @@ func ComputeArcFlags(fg *FlaggedAdjacencyArrayGraph) FlaggedGraph {
 			for _, child := range tree.children {
 				if fg.GetPartition(child.id) != uint8(partition) {
 					// add edge
-					fmt.Printf("Check %v\n", child)
 					tailRev := tree.id
 					headRev := child.id
 					AddFlag(fg, headRev, tailRev, uint8(partition))
@@ -64,7 +63,7 @@ func ComputeArcFlags(fg *FlaggedAdjacencyArrayGraph) FlaggedGraph {
 				stack = stack[0 : len(stack)-1]
 
 				for _, child := range node.children {
-					if fg.GetPartition(child.id) != uint8(partition) {
+					if fg.GetPartition(child.id) != uint8(partition) || true {
 						// add edge
 						tailRev := node.id
 						headRev := child.id
@@ -75,13 +74,21 @@ func ComputeArcFlags(fg *FlaggedAdjacencyArrayGraph) FlaggedGraph {
 			}
 		}
 	}
+	// revise edges within the same partition
+	for i := 0; i < fg.NodeCount(); i++ {
+		for _, halfEdge := range fg.GetHalfEdgesFrom(i) {
+			if fg.GetPartition(i) == fg.GetPartition(halfEdge.To) {
+				AddFlag(fg, i, halfEdge.To, fg.GetPartition(i))
+			}
+		}
+	}
 
 	return fg
 }
 
 func AddFlag(fg *FlaggedAdjacencyArrayGraph, from NodeId, to NodeId, partition PartitionId) {
 	for i := fg.Offsets[from]; i < fg.Offsets[from+1]; i++ {
-		edge := fg.Edges[i]
+		edge := &fg.Edges[i]
 		if edge.To == to {
 			edge.AddFlag(partition)
 			break
