@@ -40,7 +40,7 @@ func ComputeArcFlags(fg *FlaggedAdjacencyArrayGraph) FlaggedGraph {
 	transposedGraph := TransposeGraph(fg)
 
 	for partition, set := range boundaryNodeSets {
-		fmt.Printf("Partition %d...\n", partition)
+		fmt.Printf("Partition %d, size=%d\n", partition, len(set))
 		for boundaryNodeId := range set {
 			//fmt.Printf("Check boundary node %d in region %d\n", boundaryNodeId, partition)
 			// calculate in reverse graph
