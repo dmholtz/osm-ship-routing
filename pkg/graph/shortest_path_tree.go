@@ -53,11 +53,5 @@ func ShortestPathTree(g FlaggedGraph, origin int) TreeNode {
 		}
 	}
 
-	//for _, t := range successors {
-	//	for _, child := range t.children {
-	//		fmt.Printf("%d -> %d\n", t.id, child.id)
-	//	}
-	//}
-
 	return *successors[origin]
 }

@@ -6,11 +6,12 @@ import (
 )
 
 type addFlagJob struct {
-	graph     *FlaggedAdjacencyArrayGraph
 	from      NodeId
 	to        NodeId
 	partition PartitionId
 }
+
+const MAX_GOROUTINES = 8
 
 // Input: partitioned graph (max 64 partitions) with zero arc-flags
 // Output: partitioned graph with non-trivial arc-flags
@@ -49,19 +50,23 @@ func ComputeArcFlags(fg *FlaggedAdjacencyArrayGraph) FlaggedGraph {
 	// compute transposed graph
 	transposedGraph := TransposeGraph(fg)
 
-	jobs := make(chan addFlagJob)
+	jobs := make(chan addFlagJob, 1<<16)
 	done := make(chan bool)
+	guard := make(chan struct{}, MAX_GOROUTINES)
 	wg := sync.WaitGroup{}
 
+	// start consumer
+	go addFlag(jobs, fg, done)
+
 	for partition, set := range boundaryNodeSets {
-		fmt.Printf("Partition %d, size=%d\n", partition, len(set))
+		setSize := len(set)
+		wg.Add(setSize)
+		fmt.Printf("Partition: %d, size=%d\n", partition, setSize)
 		for boundaryNodeId := range set {
-			wg.Add(1)
-			go backwardSearch(jobs, fg, transposedGraph, uint8(partition), boundaryNodeId, &wg)
+			guard <- struct{}{}
+			go backwardSearch(jobs, fg, transposedGraph, uint8(partition), boundaryNodeId, &wg, guard)
 		}
 	}
-
-	go addFlag(jobs, done)
 
 	wg.Wait()
 	close(jobs)
@@ -80,7 +85,7 @@ func ComputeArcFlags(fg *FlaggedAdjacencyArrayGraph) FlaggedGraph {
 }
 
 // producer function
-func backwardSearch(jobs chan<- addFlagJob, graph *FlaggedAdjacencyArrayGraph, transposedGraph FlaggedGraph, partition PartitionId, boundaryNodeId NodeId, wg *sync.WaitGroup) {
+func backwardSearch(jobs chan<- addFlagJob, graph *FlaggedAdjacencyArrayGraph, transposedGraph FlaggedGraph, partition PartitionId, boundaryNodeId NodeId, wg *sync.WaitGroup, guard <-chan struct{}) {
 	// calculate in reverse graph
 	tree := ShortestPathTree(transposedGraph, boundaryNodeId)
 
@@ -90,7 +95,7 @@ func backwardSearch(jobs chan<- addFlagJob, graph *FlaggedAdjacencyArrayGraph, t
 			// add edge
 			tailRev := tree.id
 			headRev := child.id
-			jobs <- addFlagJob{graph: graph, from: headRev, to: tailRev, partition: partition}
+			jobs <- addFlagJob{from: headRev, to: tailRev, partition: partition}
 			stack = append(stack, child)
 		}
 	}
@@ -104,18 +109,17 @@ func backwardSearch(jobs chan<- addFlagJob, graph *FlaggedAdjacencyArrayGraph, t
 			// add edge
 			tailRev := node.id
 			headRev := child.id
-			jobs <- addFlagJob{graph: graph, from: headRev, to: tailRev, partition: partition}
+			jobs <- addFlagJob{from: headRev, to: tailRev, partition: partition}
 			stack = append(stack, child)
-
 		}
 	}
+	<-guard
 	wg.Done()
 }
 
-// consumer function
-func addFlag(jobs <-chan addFlagJob, done chan<- bool) {
+// (single) consumer
+func addFlag(jobs <-chan addFlagJob, g *FlaggedAdjacencyArrayGraph, done chan<- bool) {
 	for job := range jobs {
-		g := job.graph
 		for i := g.Offsets[job.from]; i < g.Offsets[job.from+1]; i++ {
 			edge := &g.Edges[i]
 			if edge.To == job.to {

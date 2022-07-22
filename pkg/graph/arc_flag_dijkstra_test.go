@@ -69,11 +69,11 @@ func TestArcFlagDijkstra3(t *testing.T) {
 func TestArcFlagDijkstra4(t *testing.T) {
 	t.Parallel()
 
-	g := NewAdjacencyArrayFromFmi(arcFlagGraphFile)
-	fg := NewFlaggedAdjacencyArrayFromFmi(arcFlagGraphFile)
+	g := NewAdjacencyArrayFromFmi("../../graphs/ocean_10k_arcflags.fmi")
+	fg := NewFlaggedAdjacencyArrayFromFmi("../../graphs/ocean_10k_arcflags.fmi")
 
-	for orig := 0; orig < g.NodeCount(); orig++ {
-		for dest := 0; dest < g.NodeCount(); dest++ {
+	for orig := 0; orig < g.NodeCount(); orig += 50 {
+		for dest := 0; dest < g.NodeCount(); dest += 50 {
 			_, length1, _ := Dijkstra(g, orig, dest)
 			_, length2, _ := ArcFlagDijkstra(fg, orig, dest)
 			if length1 != length2 {

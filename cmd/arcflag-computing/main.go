@@ -9,6 +9,7 @@ import (
 
 func main() {
 	g := graph.NewAdjacencyArrayFromFmi("graphs/ocean_equi_4.fmi")
+	//g := graph.NewAdjacencyArrayFromFmi("graphs/ocean_10k.fmi")
 
 	start := time.Now()
 	fg := graph.GridPartitioning(g)
