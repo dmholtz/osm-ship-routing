@@ -4,7 +4,7 @@ import (
 	"container/heap"
 )
 
-func ArcFlagDijkstra(g FlaggedGraph, origin, destination int) ([]int, int) {
+func ArcFlagDijkstra(g FlaggedGraph, origin, destination int) ([]int, int, int) {
 	dijkstraItems := make([]*PriorityQueueItem, g.NodeCount(), g.NodeCount())
 	originItem := PriorityQueueItem{itemId: origin, priority: 0, predecessor: -1, index: -1}
 	dijkstraItems[origin] = &originItem
@@ -15,9 +15,11 @@ func ArcFlagDijkstra(g FlaggedGraph, origin, destination int) ([]int, int) {
 
 	destPart := g.GetPartition(destination)
 
+	pqPops := 0
 	for len(pq) > 0 {
 		currentPqItem := heap.Pop(&pq).(*PriorityQueueItem)
 		currentNodeId := currentPqItem.itemId
+		pqPops++
 
 		for _, edge := range g.GetHalfEdgesFrom(currentNodeId) {
 			if !edge.IsFlagged(destPart) {
@@ -52,5 +54,5 @@ func ArcFlagDijkstra(g FlaggedGraph, origin, destination int) ([]int, int) {
 			path = append([]int{nodeId}, path...)
 		}
 	}
-	return path, length
+	return path, length, pqPops
 }

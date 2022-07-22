@@ -19,7 +19,7 @@ func TestBidirectionalDijkstra(t *testing.T) {
 		origin := rand.Intn(aag.NodeCount())
 		destination := rand.Intn(aag.NodeCount())
 
-		_, length1 := Dijkstra(aag, origin, destination)
+		_, length1, _ := Dijkstra(aag, origin, destination)
 		_, length2 := BidirectionalDijkstra(aag, origin, destination)
 
 		if length1 != length2 {
