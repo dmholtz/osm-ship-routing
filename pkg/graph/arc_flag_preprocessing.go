@@ -1,6 +1,16 @@
 package graph
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
+
+type addFlagJob struct {
+	graph     *FlaggedAdjacencyArrayGraph
+	from      NodeId
+	to        NodeId
+	partition PartitionId
+}
 
 // Input: partitioned graph (max 64 partitions) with zero arc-flags
 // Output: partitioned graph with non-trivial arc-flags
@@ -39,41 +49,24 @@ func ComputeArcFlags(fg *FlaggedAdjacencyArrayGraph) FlaggedGraph {
 	// compute transposed graph
 	transposedGraph := TransposeGraph(fg)
 
+	jobs := make(chan addFlagJob)
+	done := make(chan bool)
+	wg := sync.WaitGroup{}
+
 	for partition, set := range boundaryNodeSets {
 		fmt.Printf("Partition %d, size=%d\n", partition, len(set))
 		for boundaryNodeId := range set {
-			//fmt.Printf("Check boundary node %d in region %d\n", boundaryNodeId, partition)
-			// calculate in reverse graph
-			tree := ShortestPathTree(transposedGraph, boundaryNodeId)
-
-			stack := make([]*TreeNode, 0)
-			for _, child := range tree.children {
-				if fg.GetPartition(child.id) != uint8(partition) {
-					// add edge
-					tailRev := tree.id
-					headRev := child.id
-					AddFlag(fg, headRev, tailRev, uint8(partition))
-					stack = append(stack, child)
-				}
-			}
-
-			for len(stack) > 0 {
-				// pop
-				node := stack[len(stack)-1]
-				stack = stack[0 : len(stack)-1]
-
-				for _, child := range node.children {
-					if fg.GetPartition(child.id) != uint8(partition) || true {
-						// add edge
-						tailRev := node.id
-						headRev := child.id
-						AddFlag(fg, headRev, tailRev, uint8(partition))
-						stack = append(stack, child)
-					}
-				}
-			}
+			wg.Add(1)
+			go backwardSearch(jobs, fg, transposedGraph, uint8(partition), boundaryNodeId, &wg)
 		}
 	}
+
+	go addFlag(jobs, done)
+
+	wg.Wait()
+	close(jobs)
+	<-done
+
 	// revise edges within the same partition
 	for i := 0; i < fg.NodeCount(); i++ {
 		for _, halfEdge := range fg.GetHalfEdgesFrom(i) {
@@ -84,6 +77,54 @@ func ComputeArcFlags(fg *FlaggedAdjacencyArrayGraph) FlaggedGraph {
 	}
 
 	return fg
+}
+
+// producer function
+func backwardSearch(jobs chan<- addFlagJob, graph *FlaggedAdjacencyArrayGraph, transposedGraph FlaggedGraph, partition PartitionId, boundaryNodeId NodeId, wg *sync.WaitGroup) {
+	// calculate in reverse graph
+	tree := ShortestPathTree(transposedGraph, boundaryNodeId)
+
+	stack := make([]*TreeNode, 0)
+	for _, child := range tree.children {
+		if graph.GetPartition(child.id) != partition {
+			// add edge
+			tailRev := tree.id
+			headRev := child.id
+			jobs <- addFlagJob{graph: graph, from: headRev, to: tailRev, partition: partition}
+			stack = append(stack, child)
+		}
+	}
+
+	for len(stack) > 0 {
+		// pop
+		node := stack[len(stack)-1]
+		stack = stack[0 : len(stack)-1]
+
+		for _, child := range node.children {
+			// add edge
+			tailRev := node.id
+			headRev := child.id
+			jobs <- addFlagJob{graph: graph, from: headRev, to: tailRev, partition: partition}
+			stack = append(stack, child)
+
+		}
+	}
+	wg.Done()
+}
+
+// consumer function
+func addFlag(jobs <-chan addFlagJob, done chan<- bool) {
+	for job := range jobs {
+		g := job.graph
+		for i := g.Offsets[job.from]; i < g.Offsets[job.from+1]; i++ {
+			edge := &g.Edges[i]
+			if edge.To == job.to {
+				edge.AddFlag(job.partition)
+				break
+			}
+		}
+	}
+	done <- true
 }
 
 func AddFlag(fg *FlaggedAdjacencyArrayGraph, from NodeId, to NodeId, partition PartitionId) {
