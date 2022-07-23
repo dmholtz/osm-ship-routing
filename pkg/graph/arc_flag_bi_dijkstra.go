@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-func BidirectionalDijkstra(g Graph, origin, destination int) ([]int, int) {
+func ArcFlagBiDijkstra(g FlaggedGraph, origin, destination int) ([]int, int, int) {
 	// reference: https://www.homepages.ucl.ac.uk/~ucahmto/math/2020/05/30/bidirectional-dijkstra.html
 
 	dijkstraItemsForward := make([]*PriorityQueueItem, g.NodeCount(), g.NodeCount())
@@ -27,12 +27,17 @@ func BidirectionalDijkstra(g Graph, origin, destination int) ([]int, int) {
 	mu := math.MaxInt // will contain the shortest distance once the loop terminates
 	middleNodeId := 0
 
+	origPart := g.GetPartition(origin)
+	destPart := g.GetPartition(destination)
+
+	pqPops := 0
 	// works only on undirected graphs
 	for len(pqForward) > 0 && len(pqBackward) > 0 {
 		forwardPqItem := heap.Pop(&pqForward).(*PriorityQueueItem)
 		forwardNodeId := forwardPqItem.itemId
 		backwardPqItem := heap.Pop(&pqBackward).(*PriorityQueueItem)
 		backwardNodeId := backwardPqItem.itemId
+		pqPops += 2
 
 		// stopping criterion
 		if dijkstraItemsForward[forwardNodeId].priority+dijkstraItemsBackward[backwardNodeId].priority >= mu {
@@ -41,22 +46,25 @@ func BidirectionalDijkstra(g Graph, origin, destination int) ([]int, int) {
 
 		// forward search
 		for _, edge := range g.GetHalfEdgesFrom(forwardNodeId) {
+			if !edge.IsFlagged(destPart) {
+				continue
+			}
 			successor := edge.To
 
 			if dijkstraItemsForward[successor] == nil {
-				newPriority := dijkstraItemsForward[forwardNodeId].priority + edge.Distance
+				newPriority := dijkstraItemsForward[forwardNodeId].priority + edge.Weight
 				pqItem := PriorityQueueItem{itemId: successor, priority: newPriority, predecessor: forwardNodeId, index: -1}
 				dijkstraItemsForward[successor] = &pqItem
 				heap.Push(&pqForward, &pqItem)
 			} else {
-				if updatedDistance := dijkstraItemsForward[forwardNodeId].priority + edge.Distance; updatedDistance < dijkstraItemsForward[successor].priority {
+				if updatedDistance := dijkstraItemsForward[forwardNodeId].priority + edge.Weight; updatedDistance < dijkstraItemsForward[successor].priority {
 					pqForward.update(dijkstraItemsForward[successor], updatedDistance)
 					dijkstraItemsForward[successor].predecessor = forwardNodeId
 				}
 			}
 
-			if x := dijkstraItemsBackward[successor]; x != nil && dijkstraItemsForward[forwardNodeId].priority+edge.Distance+x.priority < mu {
-				mu = dijkstraItemsForward[forwardNodeId].priority + edge.Distance + x.priority
+			if x := dijkstraItemsBackward[successor]; x != nil && dijkstraItemsForward[forwardNodeId].priority+edge.Weight+x.priority < mu {
+				mu = dijkstraItemsForward[forwardNodeId].priority + edge.Weight + x.priority
 				dijkstraItemsForward[successor].predecessor = forwardNodeId
 				middleNodeId = successor
 			}
@@ -64,22 +72,25 @@ func BidirectionalDijkstra(g Graph, origin, destination int) ([]int, int) {
 
 		// backward search
 		for _, edge := range g.GetHalfEdgesFrom(backwardNodeId) {
+			if !edge.IsFlagged(origPart) {
+				continue
+			}
 			successor := edge.To
 
 			if dijkstraItemsBackward[successor] == nil {
-				newPriority := dijkstraItemsBackward[backwardNodeId].priority + edge.Distance
+				newPriority := dijkstraItemsBackward[backwardNodeId].priority + edge.Weight
 				pqItem := PriorityQueueItem{itemId: successor, priority: newPriority, predecessor: backwardNodeId, index: -1}
 				dijkstraItemsBackward[successor] = &pqItem
 				heap.Push(&pqBackward, &pqItem)
 			} else {
-				if updatedDistance := dijkstraItemsBackward[backwardNodeId].priority + edge.Distance; updatedDistance < dijkstraItemsBackward[successor].priority {
+				if updatedDistance := dijkstraItemsBackward[backwardNodeId].priority + edge.Weight; updatedDistance < dijkstraItemsBackward[successor].priority {
 					pqBackward.update(dijkstraItemsBackward[successor], updatedDistance)
 					dijkstraItemsBackward[successor].predecessor = backwardNodeId
 				}
 			}
 
-			if x := dijkstraItemsForward[successor]; x != nil && dijkstraItemsBackward[backwardNodeId].priority+edge.Distance+x.priority < mu {
-				mu = dijkstraItemsBackward[backwardNodeId].priority + edge.Distance + x.priority
+			if x := dijkstraItemsForward[successor]; x != nil && dijkstraItemsBackward[backwardNodeId].priority+edge.Weight+x.priority < mu {
+				mu = dijkstraItemsBackward[backwardNodeId].priority + edge.Weight + x.priority
 				dijkstraItemsBackward[successor].predecessor = backwardNodeId
 				middleNodeId = successor
 			}
@@ -106,5 +117,5 @@ func BidirectionalDijkstra(g Graph, origin, destination int) ([]int, int) {
 		}
 	}
 
-	return path, length
+	return path, length, pqPops
 }
