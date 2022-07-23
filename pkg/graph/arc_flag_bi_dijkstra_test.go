@@ -21,7 +21,8 @@ func TestArcFlagBiDijkstra(t *testing.T) {
 			_, length1, dPqPops := Dijkstra(g, orig, dest)
 			_, length2, afPqPops := ArcFlagBiDijkstra(fg, orig, dest)
 			if length1 != length2 {
-				t.Logf("[Path(from=%d, dest=%d)]: Different lengths found: %d≠%d", orig, dest, length1, length2)
+				t.Errorf("[Path(from=%d, dest=%d)]: Different lengths found: %d≠%d", orig, dest, length1, length2)
+				return
 			}
 			totalDijkstraPqPops += dPqPops
 			totalArcFlagPqPops += afPqPops

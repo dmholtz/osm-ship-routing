@@ -46,7 +46,7 @@ func ArcFlagBiDijkstra(g FlaggedGraph, origin, destination int) ([]int, int, int
 
 		// forward search
 		for _, edge := range g.GetHalfEdgesFrom(forwardNodeId) {
-			if !edge.IsFlagged(destPart) {
+			if !edge.IsFlagged(destPart) && dijkstraItemsBackward[forwardNodeId] == nil {
 				continue
 			}
 			successor := edge.To
@@ -72,7 +72,7 @@ func ArcFlagBiDijkstra(g FlaggedGraph, origin, destination int) ([]int, int, int
 
 		// backward search
 		for _, edge := range g.GetHalfEdgesFrom(backwardNodeId) {
-			if !edge.IsFlagged(origPart) {
+			if !edge.IsFlagged(origPart) && dijkstraItemsBackward[backwardNodeId] == nil {
 				continue
 			}
 			successor := edge.To
