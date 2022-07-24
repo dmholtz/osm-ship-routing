@@ -34,11 +34,6 @@ func BidirectionalDijkstra(g Graph, origin, destination int) ([]int, int) {
 		backwardPqItem := heap.Pop(&pqBackward).(*PriorityQueueItem)
 		backwardNodeId := backwardPqItem.itemId
 
-		// stopping criterion
-		if dijkstraItemsForward[forwardNodeId].priority+dijkstraItemsBackward[backwardNodeId].priority >= mu {
-			break
-		}
-
 		// forward search
 		for _, edge := range g.GetHalfEdgesFrom(forwardNodeId) {
 			successor := edge.To
@@ -83,6 +78,11 @@ func BidirectionalDijkstra(g Graph, origin, destination int) ([]int, int) {
 				dijkstraItemsBackward[successor].predecessor = backwardNodeId
 				middleNodeId = successor
 			}
+		}
+
+		// stopping criterion
+		if dijkstraItemsForward[forwardNodeId].priority+dijkstraItemsBackward[backwardNodeId].priority >= mu {
+			break
 		}
 	}
 

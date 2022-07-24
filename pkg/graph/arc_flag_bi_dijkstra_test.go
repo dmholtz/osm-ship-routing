@@ -9,17 +9,18 @@ func TestArcFlagBiDijkstra(t *testing.T) {
 
 	g := NewAdjacencyArrayFromFmi("out2.fmi")
 	fg := NewFlaggedAdjacencyArrayFromFmi("out2.fmi")
+	fgt := NewFlaggedAdjacencyArrayFromFmi("out2t.fmi")
 
 	n := 0
 	totalDijkstraPqPops := 0
 	totalArcFlagPqPops := 0
-	for orig := 0; orig < g.NodeCount(); orig = orig + 10 {
-		for dest := 0; dest < g.NodeCount(); dest = dest + 50 {
+	for orig := 0; orig < g.NodeCount(); orig = orig + 50 {
+		for dest := 0; dest < g.NodeCount(); dest = dest + 40 {
 			if orig == dest {
 				continue
 			}
 			_, length1, dPqPops := Dijkstra(g, orig, dest)
-			_, length2, afPqPops := ArcFlagBiDijkstra(fg, orig, dest)
+			_, length2, afPqPops := ArcFlagBiDijkstra(fg, fgt, orig, dest)
 			if length1 != length2 {
 				t.Errorf("[Path(from=%d, dest=%d)]: Different lengths found: %d≠%d", orig, dest, length1, length2)
 				return

@@ -14,5 +14,11 @@ func TransposeGraph(fg FlaggedGraph) FlaggedGraph {
 		}
 	}
 
+	partitions := make([]PartitionId, 0)
+	for i := 0; i < fg.NodeCount(); i++ {
+		partitions = append(partitions, fg.GetPartition(i))
+	}
+	transpose.Partitions = partitions
+
 	return &transpose
 }

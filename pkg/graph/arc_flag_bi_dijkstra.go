@@ -5,14 +5,20 @@ import (
 	"math"
 )
 
-func ArcFlagBiDijkstra(g FlaggedGraph, origin, destination int) ([]int, int, int) {
+func ArcFlagBiDijkstra(g FlaggedGraph, tg FlaggedGraph, origin, destination int) ([]int, int, int) {
 	// reference: https://www.homepages.ucl.ac.uk/~ucahmto/math/2020/05/30/bidirectional-dijkstra.html
 
-	dijkstraItemsForward := make([]*PriorityQueueItem, g.NodeCount(), g.NodeCount())
+	dijkstraItemsForward := make([]*PriorityQueueItem, 0)
+	for i := 0; i < g.NodeCount(); i++ {
+		dijkstraItemsForward = append(dijkstraItemsForward, &PriorityQueueItem{itemId: i, priority: math.MaxInt, predecessor: -1, index: -1})
+	}
 	originItem := PriorityQueueItem{itemId: origin, priority: 0, predecessor: -1, index: -1}
 	dijkstraItemsForward[origin] = &originItem
 
-	dijkstraItemsBackward := make([]*PriorityQueueItem, g.NodeCount(), g.NodeCount())
+	dijkstraItemsBackward := make([]*PriorityQueueItem, 0)
+	for i := 0; i < tg.NodeCount(); i++ {
+		dijkstraItemsBackward = append(dijkstraItemsBackward, &PriorityQueueItem{itemId: i, priority: math.MaxInt, predecessor: -1, index: -1})
+	}
 	targetItem := PriorityQueueItem{itemId: destination, priority: 0, predecessor: -1, index: -1}
 	dijkstraItemsBackward[destination] = &targetItem
 
@@ -28,7 +34,7 @@ func ArcFlagBiDijkstra(g FlaggedGraph, origin, destination int) ([]int, int, int
 	middleNodeId := 0
 
 	origPart := g.GetPartition(origin)
-	destPart := g.GetPartition(destination)
+	destPart := tg.GetPartition(destination)
 
 	pqPops := 0
 	// works only on undirected graphs
@@ -39,19 +45,14 @@ func ArcFlagBiDijkstra(g FlaggedGraph, origin, destination int) ([]int, int, int
 		backwardNodeId := backwardPqItem.itemId
 		pqPops += 2
 
-		// stopping criterion
-		if dijkstraItemsForward[forwardNodeId].priority+dijkstraItemsBackward[backwardNodeId].priority >= mu {
-			break
-		}
-
 		// forward search
 		for _, edge := range g.GetHalfEdgesFrom(forwardNodeId) {
-			if !edge.IsFlagged(destPart) && dijkstraItemsBackward[forwardNodeId] == nil {
+			successor := edge.To
+			if !edge.IsFlagged(destPart) {
 				continue
 			}
-			successor := edge.To
 
-			if dijkstraItemsForward[successor] == nil {
+			if dijkstraItemsForward[successor].priority == math.MaxInt { // check if not in PQ
 				newPriority := dijkstraItemsForward[forwardNodeId].priority + edge.Weight
 				pqItem := PriorityQueueItem{itemId: successor, priority: newPriority, predecessor: forwardNodeId, index: -1}
 				dijkstraItemsForward[successor] = &pqItem
@@ -63,7 +64,7 @@ func ArcFlagBiDijkstra(g FlaggedGraph, origin, destination int) ([]int, int, int
 				}
 			}
 
-			if x := dijkstraItemsBackward[successor]; x != nil && dijkstraItemsForward[forwardNodeId].priority+edge.Weight+x.priority < mu {
+			if x := dijkstraItemsBackward[successor]; x.priority < math.MaxInt && dijkstraItemsForward[forwardNodeId].priority+edge.Weight+x.priority < mu {
 				mu = dijkstraItemsForward[forwardNodeId].priority + edge.Weight + x.priority
 				dijkstraItemsForward[successor].predecessor = forwardNodeId
 				middleNodeId = successor
@@ -71,13 +72,13 @@ func ArcFlagBiDijkstra(g FlaggedGraph, origin, destination int) ([]int, int, int
 		}
 
 		// backward search
-		for _, edge := range g.GetHalfEdgesFrom(backwardNodeId) {
-			if !edge.IsFlagged(origPart) && dijkstraItemsBackward[backwardNodeId] == nil {
+		for _, edge := range tg.GetHalfEdgesFrom(backwardNodeId) {
+			successor := edge.To
+			if !edge.IsFlagged(origPart) {
 				continue
 			}
-			successor := edge.To
 
-			if dijkstraItemsBackward[successor] == nil {
+			if dijkstraItemsBackward[successor].priority == math.MaxInt {
 				newPriority := dijkstraItemsBackward[backwardNodeId].priority + edge.Weight
 				pqItem := PriorityQueueItem{itemId: successor, priority: newPriority, predecessor: backwardNodeId, index: -1}
 				dijkstraItemsBackward[successor] = &pqItem
@@ -89,11 +90,16 @@ func ArcFlagBiDijkstra(g FlaggedGraph, origin, destination int) ([]int, int, int
 				}
 			}
 
-			if x := dijkstraItemsForward[successor]; x != nil && dijkstraItemsBackward[backwardNodeId].priority+edge.Weight+x.priority < mu {
+			if x := dijkstraItemsForward[successor]; x.priority < math.MaxInt && dijkstraItemsBackward[backwardNodeId].priority+edge.Weight+x.priority < mu {
 				mu = dijkstraItemsBackward[backwardNodeId].priority + edge.Weight + x.priority
 				dijkstraItemsBackward[successor].predecessor = backwardNodeId
 				middleNodeId = successor
 			}
+		}
+
+		// stopping criterion
+		if dijkstraItemsForward[forwardNodeId].priority+dijkstraItemsBackward[backwardNodeId].priority >= mu {
+			break
 		}
 	}
 

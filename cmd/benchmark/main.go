@@ -80,7 +80,7 @@ func benchmarkArcFlagDijkstra(faag *graph.FlaggedAdjacencyArrayGraph, origin int
 
 func benchmarkArcFlagBiDijkstra(faag *graph.FlaggedAdjacencyArrayGraph, origin int, destination int) stats {
 	start := time.Now()
-	_, _, pqPops := graph.ArcFlagBiDijkstra(faag, origin, destination)
+	_, _, pqPops := graph.ArcFlagBiDijkstra(faag, faag, origin, destination)
 	elapsed := time.Since(start)
 	return stats{runtime: uint64(elapsed), pqPops: uint64(pqPops)}
 }
