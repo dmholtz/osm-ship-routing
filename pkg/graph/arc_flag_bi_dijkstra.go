@@ -8,17 +8,11 @@ import (
 func ArcFlagBiDijkstra(g FlaggedGraph, tg FlaggedGraph, origin, destination int) ([]int, int, int) {
 	// reference: https://www.homepages.ucl.ac.uk/~ucahmto/math/2020/05/30/bidirectional-dijkstra.html
 
-	dijkstraItemsForward := make([]*PriorityQueueItem, 0)
-	for i := 0; i < g.NodeCount(); i++ {
-		dijkstraItemsForward = append(dijkstraItemsForward, &PriorityQueueItem{itemId: i, priority: math.MaxInt, predecessor: -1, index: -1})
-	}
+	dijkstraItemsForward := make([]*PriorityQueueItem, g.NodeCount(), g.NodeCount())
 	originItem := PriorityQueueItem{itemId: origin, priority: 0, predecessor: -1, index: -1}
 	dijkstraItemsForward[origin] = &originItem
 
-	dijkstraItemsBackward := make([]*PriorityQueueItem, 0)
-	for i := 0; i < tg.NodeCount(); i++ {
-		dijkstraItemsBackward = append(dijkstraItemsBackward, &PriorityQueueItem{itemId: i, priority: math.MaxInt, predecessor: -1, index: -1})
-	}
+	dijkstraItemsBackward := make([]*PriorityQueueItem, tg.NodeCount(), tg.NodeCount())
 	targetItem := PriorityQueueItem{itemId: destination, priority: 0, predecessor: -1, index: -1}
 	dijkstraItemsBackward[destination] = &targetItem
 
@@ -52,7 +46,7 @@ func ArcFlagBiDijkstra(g FlaggedGraph, tg FlaggedGraph, origin, destination int)
 				continue
 			}
 
-			if dijkstraItemsForward[successor].priority == math.MaxInt { // check if not in PQ
+			if dijkstraItemsForward[successor] == nil { // check if not in PQ
 				newPriority := dijkstraItemsForward[forwardNodeId].priority + edge.Weight
 				pqItem := PriorityQueueItem{itemId: successor, priority: newPriority, predecessor: forwardNodeId, index: -1}
 				dijkstraItemsForward[successor] = &pqItem
@@ -64,7 +58,7 @@ func ArcFlagBiDijkstra(g FlaggedGraph, tg FlaggedGraph, origin, destination int)
 				}
 			}
 
-			if x := dijkstraItemsBackward[successor]; x.priority < math.MaxInt && dijkstraItemsForward[forwardNodeId].priority+edge.Weight+x.priority < mu {
+			if x := dijkstraItemsBackward[successor]; x != nil && dijkstraItemsForward[forwardNodeId].priority+edge.Weight+x.priority < mu {
 				mu = dijkstraItemsForward[forwardNodeId].priority + edge.Weight + x.priority
 				dijkstraItemsForward[successor].predecessor = forwardNodeId
 				middleNodeId = successor
@@ -78,7 +72,7 @@ func ArcFlagBiDijkstra(g FlaggedGraph, tg FlaggedGraph, origin, destination int)
 				continue
 			}
 
-			if dijkstraItemsBackward[successor].priority == math.MaxInt {
+			if dijkstraItemsBackward[successor] == nil {
 				newPriority := dijkstraItemsBackward[backwardNodeId].priority + edge.Weight
 				pqItem := PriorityQueueItem{itemId: successor, priority: newPriority, predecessor: backwardNodeId, index: -1}
 				dijkstraItemsBackward[successor] = &pqItem
@@ -90,7 +84,7 @@ func ArcFlagBiDijkstra(g FlaggedGraph, tg FlaggedGraph, origin, destination int)
 				}
 			}
 
-			if x := dijkstraItemsForward[successor]; x.priority < math.MaxInt && dijkstraItemsBackward[backwardNodeId].priority+edge.Weight+x.priority < mu {
+			if x := dijkstraItemsForward[successor]; x != nil && dijkstraItemsBackward[backwardNodeId].priority+edge.Weight+x.priority < mu {
 				mu = dijkstraItemsBackward[backwardNodeId].priority + edge.Weight + x.priority
 				dijkstraItemsBackward[successor].predecessor = backwardNodeId
 				middleNodeId = successor
