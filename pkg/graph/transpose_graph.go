@@ -20,5 +20,5 @@ func TransposeGraph(fg FlaggedGraph) FlaggedGraph {
 	}
 	transpose.Partitions = partitions
 
-	return &transpose
+	return NewFlaggedAdjacencyArrayFromGraph(&transpose)
 }

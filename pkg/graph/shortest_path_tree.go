@@ -65,20 +65,22 @@ func ShortestPathTree(g FlaggedGraph, origin int) TreeNode {
 	heap.Init(&pq)
 	heap.Push(&pq, dijkstraItems[origin])
 
-	successors := make([]*TreeNode, 0)
-	for i := 0; i < g.NodeCount(); i++ {
-		successors = append(successors, &TreeNode{id: i, children: make([]*TreeNode, 0)})
-	}
+	successors := make([]*TreeNode, g.NodeCount(), g.NodeCount())
 
 	for len(pq) > 0 {
 		currentPqItem := heap.Pop(&pq).(*PqItem)
 		currentNodeId := currentPqItem.itemId
 
 		if currentNodeId != origin {
+			if successors[currentNodeId] == nil {
+				successors[currentNodeId] = &TreeNode{id: currentNodeId, children: make([]*TreeNode, 0)}
+			}
 			for _, pred := range currentPqItem.predecessors {
+				if successors[pred] == nil {
+					successors[pred] = &TreeNode{id: pred, children: make([]*TreeNode, 0)}
+				}
 				successors[pred].children = append(successors[pred].children, successors[currentNodeId])
 			}
-
 		}
 
 		for _, edge := range g.GetHalfEdgesFrom(currentNodeId) {
@@ -86,20 +88,16 @@ func ShortestPathTree(g FlaggedGraph, origin int) TreeNode {
 
 			if dijkstraItems[successor] == nil {
 				newPriority := dijkstraItems[currentNodeId].priority + edge.Weight
-				predecessors := make([]int, 0)
-				predecessors = append(predecessors, currentNodeId)
-				pqItem := PqItem{itemId: successor, priority: newPriority, predecessors: predecessors, index: -1}
+				pqItem := PqItem{itemId: successor, priority: newPriority, predecessors: []int{currentNodeId}, index: -1}
 				dijkstraItems[successor] = &pqItem
 				heap.Push(&pq, &pqItem)
 			} else {
 				if updatedDistance := dijkstraItems[currentNodeId].priority + edge.Weight; updatedDistance < dijkstraItems[successor].priority {
 					pq.update(dijkstraItems[successor], updatedDistance)
 					// reset predecessors
-					predecessors := make([]int, 0)
-					predecessors = append(predecessors, currentNodeId)
-					dijkstraItems[successor].predecessors = predecessors
+					dijkstraItems[successor].predecessors = []int{currentNodeId}
 				} else if updatedDistance == dijkstraItems[successor].priority {
-					// append
+					// add another predecessor
 					dijkstraItems[successor].predecessors = append(dijkstraItems[successor].predecessors, currentNodeId)
 				}
 			}
