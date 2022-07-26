@@ -7,6 +7,7 @@ import (
 type TreeNode struct {
 	id       NodeId
 	children []*TreeNode
+	visited  bool
 }
 
 type PqItem struct {

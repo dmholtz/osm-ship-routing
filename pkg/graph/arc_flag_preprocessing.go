@@ -97,6 +97,7 @@ func backwardSearch(jobs chan<- addFlagJob, graph *FlaggedAdjacencyArrayGraph, t
 			headRev := child.id
 			jobs <- addFlagJob{from: headRev, to: tailRev, partition: partition}
 			stack = append(stack, child)
+			child.visited = true
 		}
 	}
 
@@ -106,11 +107,15 @@ func backwardSearch(jobs chan<- addFlagJob, graph *FlaggedAdjacencyArrayGraph, t
 		stack = stack[0 : len(stack)-1]
 
 		for _, child := range node.children {
+			if child.visited {
+				continue
+			}
 			// add edge
 			tailRev := node.id
 			headRev := child.id
 			jobs <- addFlagJob{from: headRev, to: tailRev, partition: partition}
 			stack = append(stack, child)
+			child.visited = true
 		}
 	}
 	<-guard
