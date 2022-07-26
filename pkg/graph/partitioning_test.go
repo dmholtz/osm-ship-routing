@@ -21,3 +21,16 @@ func TestPartitioning0k(t *testing.T) {
 	fg := GridPartitioning(g)
 	WritePartitionedFmi(fg, "out0k.fmi")
 }
+
+func TestKdPartitioning(t *testing.T) {
+	g := NewAdjacencyArrayFromFmi("testdata/kD_partitioning_3.fmi")
+	fg := KdPartitioning(g, 3)
+	WritePartitionedFmi(fg, "testdata/out.fmi")
+}
+
+func TestKdPartitioningFull(t *testing.T) {
+	//g := NewAdjacencyArrayFromFmi("../../graphs/ocean_0k.fmi")
+	g := NewAdjacencyArrayFromFmi("../../graphs/ocean_equi_4.fmi")
+	fg := KdPartitioning(g, 6)
+	WritePartitionedFmi(fg, "testdata/full.fmi")
+}
