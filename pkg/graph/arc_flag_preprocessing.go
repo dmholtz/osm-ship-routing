@@ -114,7 +114,9 @@ func backwardSearch(jobs chan<- addFlagJob, graph *FlaggedAdjacencyArrayGraph, t
 			tailRev := node.id
 			headRev := child.id
 			jobs <- addFlagJob{from: headRev, to: tailRev, partition: partition}
-			stack = append(stack, child)
+			if graph.GetPartition(child.id) != partition {
+				stack = append(stack, child)
+			}
 			child.visited = true
 		}
 	}
