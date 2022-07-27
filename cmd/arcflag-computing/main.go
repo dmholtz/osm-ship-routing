@@ -9,10 +9,10 @@ import (
 
 func main() {
 	g := graph.NewAdjacencyArrayFromFmi("graphs/ocean_equi_4.fmi")
-	//g := graph.NewAdjacencyArrayFromFmi("graphs/ocean_10k.fmi")
 
 	start := time.Now()
-	fg := graph.GridPartitioning(g)
+	//fg := graph.GridPartitioning(g)
+	fg := graph.KdPartitioning(g, 6)
 	elapsed := time.Since(start)
 	fmt.Printf("[TIME-Partitioning] = %s\n", elapsed)
 
@@ -22,7 +22,7 @@ func main() {
 	fmt.Printf("[TIME-ArcFlagComputation] = %s\n", elapsed)
 
 	start = time.Now()
-	graph.WritePartitionedFmi(fg1, "graphs/ocean_equi_4_arcflags.fmi")
+	graph.WritePartitionedFmi(fg1, "graphs/ocean_equi_4_kd_arcflags.fmi")
 	elapsed = time.Since(start)
 	fmt.Printf("[TIME-WriteFMI] = %s\n", elapsed)
 }

@@ -45,6 +45,17 @@ func ArcFlagBiDijkstra(g FlaggedGraph, tg FlaggedGraph, origin, destination int)
 			if !edge.IsFlagged(destPart) {
 				continue
 			}
+			// find the reverse edge
+			var revEdge FlaggedHalfEdge
+			for _, e := range tg.GetHalfEdgesFrom(successor) {
+				if e.To == forwardNodeId {
+					revEdge = e
+					break
+				}
+			}
+			if !revEdge.IsFlagged(origPart) {
+				continue
+			}
 
 			if dijkstraItemsForward[successor] == nil { // check if not in PQ
 				newPriority := dijkstraItemsForward[forwardNodeId].priority + edge.Weight
@@ -69,6 +80,17 @@ func ArcFlagBiDijkstra(g FlaggedGraph, tg FlaggedGraph, origin, destination int)
 		for _, edge := range tg.GetHalfEdgesFrom(backwardNodeId) {
 			successor := edge.To
 			if !edge.IsFlagged(origPart) {
+				continue
+			}
+			// find the reverse edge
+			var revEdge FlaggedHalfEdge
+			for _, e := range g.GetHalfEdgesFrom(successor) {
+				if e.To == backwardNodeId {
+					revEdge = e
+					break
+				}
+			}
+			if !revEdge.IsFlagged(destPart) {
 				continue
 			}
 

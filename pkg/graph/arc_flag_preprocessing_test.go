@@ -20,6 +20,21 @@ func TestComputeArcFlag(t *testing.T) {
 func TestComputeArcFlag2(t *testing.T) {
 	t.Parallel()
 	fg := NewFlaggedAdjacencyArrayFromFmi("out.fmi")
+	//gt_tmp := TransposeGraph(fg)
+	//gt := NewFlaggedAdjacencyArrayFromGraph(gt_tmp)
+
+	fg1 := ComputeArcFlags(fg)
+	//gt1 := ComputeArcFlags(gt)
+
+	t.Log(fg1.GetHalfEdgesFrom(0))
+
+	WritePartitionedFmi(fg1, "out2.fmi")
+	//WritePartitionedFmi(gt1, "out2t.fmi")
+}
+
+func TestComputeArcFlagkd(t *testing.T) {
+	t.Parallel()
+	fg := NewFlaggedAdjacencyArrayFromFmi("outkd.fmi")
 	gt_tmp := TransposeGraph(fg)
 	gt := NewFlaggedAdjacencyArrayFromGraph(gt_tmp)
 
@@ -28,8 +43,8 @@ func TestComputeArcFlag2(t *testing.T) {
 
 	t.Log(fg1.GetHalfEdgesFrom(0))
 
-	WritePartitionedFmi(fg1, "out2.fmi")
-	WritePartitionedFmi(gt1, "out2t.fmi")
+	WritePartitionedFmi(fg1, "out2kd.fmi")
+	WritePartitionedFmi(gt1, "out2tkd.fmi")
 }
 
 func TestComputeArcFlag3(t *testing.T) {

@@ -15,7 +15,7 @@ func TestArcFlagBiDijkstra(t *testing.T) {
 	totalDijkstraPqPops := 0
 	totalArcFlagPqPops := 0
 	for orig := 0; orig < g.NodeCount(); orig = orig + 50 {
-		for dest := 0; dest < g.NodeCount(); dest = dest + 40 {
+		for dest := 0; dest < g.NodeCount(); dest = dest + 50 {
 			if orig == dest {
 				continue
 			}
