@@ -34,5 +34,8 @@
 # testdata
 !**/testdata/*.fmi
 
+# scripts
+!scripts/*.py
+
 # ...even if they are in subdirectories
 !*/
