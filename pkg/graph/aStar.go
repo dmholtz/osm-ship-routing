@@ -7,11 +7,12 @@ import (
 )
 
 type AStarPriorityQueueItem struct {
-	itemId      int // node id of this item
-	priority    int // estimated distance from this node to destination (f-value)
-	distance    int // distance from origin to this node (g-value)
-	predecessor int // node id of the predecessor
-	index       int // index of the item in the heap
+	itemId      int  // node id of this item
+	priority    int  // estimated distance from this node to destination (f-value)
+	distance    int  // distance from origin to this node (g-value)
+	predecessor int  // node id of the predecessor
+	index       int  // index of the item in the heap
+	settled     bool // true iff the node has been settled by the algorithm
 }
 
 // A AStarPriorityQueue implements the heap.Interface and hold AStarPriorityQueueItems
