@@ -40,9 +40,15 @@ func main() {
 	faag := graph.NewFlaggedAdjacencyArrayFromFmi(flagggedGraphFile)
 	fmt.Println("Done")
 
+	landmarks := []int{0, 103699, 2e5, 3e5, 402968, 5e5, 6e5, 7e5}
+	fmt.Printf("ALT preprocessing ...")
+	landmarkDistancesCollection := graph.AltPreprocessing(aag, aag, landmarks)
+	fmt.Println("Done")
+
 	dijkstraStats := stats{}
 	arcFlagDijkstraStats := stats{}
 	arcFlagBiDijkstraStats := stats{}
+	altStats := stats{}
 	for i := 0; i < n; i++ {
 		origin := rand.Intn(aag.NodeCount())
 		destination := rand.Intn(aag.NodeCount())
@@ -50,11 +56,13 @@ func main() {
 		dijkstraStats.add(benchmarkDijkstra(aag, destination, origin))
 		arcFlagDijkstraStats.add(benchmarkArcFlagDijkstra(faag, origin, destination))
 		arcFlagBiDijkstraStats.add(benchmarkArcFlagBiDijkstra(faag, origin, destination))
+		altStats.add(benchmarkAlt(aag, landmarkDistancesCollection, origin, destination))
 	}
 
 	dijkstraStats = dijkstraStats.average(n)
 	arcFlagDijkstraStats = arcFlagDijkstraStats.average(n)
 	arcFlagBiDijkstraStats = arcFlagBiDijkstraStats.average(n)
+	altStats = altStats.average(n)
 
 	fmt.Println("Benchmark standard dijkstra:")
 	dijkstraStats.print()
@@ -62,6 +70,8 @@ func main() {
 	arcFlagDijkstraStats.print()
 	fmt.Println("Benchmark arc-flag bi-dijkstra:")
 	arcFlagBiDijkstraStats.print()
+	fmt.Println("Benchmark ALT:")
+	altStats.print()
 }
 
 func benchmarkDijkstra(aag *graph.AdjacencyArrayGraph, origin int, destination int) stats {
@@ -81,6 +91,13 @@ func benchmarkArcFlagDijkstra(faag *graph.FlaggedAdjacencyArrayGraph, origin int
 func benchmarkArcFlagBiDijkstra(faag *graph.FlaggedAdjacencyArrayGraph, origin int, destination int) stats {
 	start := time.Now()
 	_, _, pqPops := graph.ArcFlagBiDijkstra(faag, faag, origin, destination)
+	elapsed := time.Since(start)
+	return stats{runtime: uint64(elapsed), pqPops: uint64(pqPops)}
+}
+
+func benchmarkAlt(aag *graph.AdjacencyArrayGraph, landmarkDistancesCollection []graph.LandmarkDistances, origin int, destination int) stats {
+	start := time.Now()
+	_, _, pqPops := graph.Alt(aag, landmarkDistancesCollection, origin, destination)
 	elapsed := time.Since(start)
 	return stats{runtime: uint64(elapsed), pqPops: uint64(pqPops)}
 }
