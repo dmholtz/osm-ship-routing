@@ -10,7 +10,7 @@ type DjkstraItem struct {
 	Predecessor NodeId
 }
 
-func DijkstraOneToAll(g Graph, origin int) []DjkstraItem {
+func DijkstraOneToAll(g Graph, origin NodeId) []DjkstraItem {
 	dijkstraItems := make([]*PriorityQueueItem, g.NodeCount(), g.NodeCount())
 	originItem := PriorityQueueItem{itemId: origin, priority: 0, predecessor: -1, index: -1}
 	dijkstraItems[origin] = &originItem
