@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/dmholtz/osm-ship-routing/pkg/graph"
@@ -10,6 +13,7 @@ import (
 
 const graphFile = "graphs/ocean_equi_4.fmi"
 const flagggedGraphFile = "graphs/ocean_equi_4_arcflags.fmi"
+const landmarkFile = "landmarks.json"
 const n = 100
 
 type stats struct {
@@ -32,6 +36,15 @@ func (s stats) print() {
 	fmt.Printf("Average number of PQ-pops: %d\n", s.pqPops)
 }
 
+func loadLandmarks(filename string) []int {
+	landmarks := make([]int, 0)
+	jsonFile, _ := os.Open(landmarkFile)
+	defer jsonFile.Close()
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+	_ = json.Unmarshal(byteValue, &landmarks)
+	return landmarks
+}
+
 func main() {
 	fmt.Printf("Loading %s ... ", graphFile)
 	aag := graph.NewAdjacencyArrayFromFmi(graphFile)
@@ -39,8 +52,11 @@ func main() {
 	fmt.Printf("Loading %s ... ", flagggedGraphFile)
 	faag := graph.NewFlaggedAdjacencyArrayFromFmi(flagggedGraphFile)
 	fmt.Println("Done")
+	fmt.Printf("Loading %s ... ", landmarkFile)
+	landmarks := loadLandmarks(landmarkFile)
+	//landmarks := []int{0, 103699, 2e5, 3e5, 402968, 5e5, 6e5, 7e5}
+	fmt.Println("Done")
 
-	landmarks := []int{0, 103699, 2e5, 3e5, 402968, 5e5, 6e5, 7e5}
 	fmt.Printf("ALT preprocessing ...")
 	landmarkDistancesCollection := graph.AltPreprocessing(aag, aag, landmarks)
 	fmt.Println("Done")
