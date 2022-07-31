@@ -12,7 +12,7 @@ import (
 )
 
 const graphFile = "graphs/ocean_equi_4.fmi"
-const flagggedGraphFile = "graphs/ocean_equi_4_arcflags.fmi"
+const flagggedGraphFile = "graphs/ocean_equi_4_grid_arcflags.fmi"
 const landmarkFile = "landmarks.json"
 const n = 100
 
