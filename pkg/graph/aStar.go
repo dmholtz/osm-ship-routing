@@ -59,10 +59,11 @@ func heuristic(g Graph, nodeId int, targetId int) int {
 	node, targetNode := g.GetNode(nodeId), g.GetNode(targetId)
 	p1 := geo.NewPoint(node.Lat, node.Lon)
 	p2 := geo.NewPoint(targetNode.Lat, targetNode.Lon)
-	return p1.IntHaversine(p2)
+	return int(p1.Haversine(p2) * 0.9999)
+	//return p1.IntHaversine(p2)
 }
 
-func AStar(g Graph, origin, destination int) ([]int, int) {
+func AStar(g Graph, origin, destination int) ([]int, int, int) {
 	dijkstraItems := make([]*AStarPriorityQueueItem, g.NodeCount(), g.NodeCount())
 	originItem := AStarPriorityQueueItem{itemId: origin, priority: 0, predecessor: -1, index: -1}
 	dijkstraItems[origin] = &originItem
@@ -71,9 +72,11 @@ func AStar(g Graph, origin, destination int) ([]int, int) {
 	heap.Init(&pq)
 	heap.Push(&pq, dijkstraItems[origin])
 
+	pqPops := 0
 	for len(pq) > 0 {
 		currentPqItem := heap.Pop(&pq).(*AStarPriorityQueueItem)
 		currentNodeId := currentPqItem.itemId
+		pqPops += 1
 
 		for _, edge := range g.GetHalfEdgesFrom(currentNodeId) {
 			successor := edge.To
@@ -105,5 +108,5 @@ func AStar(g Graph, origin, destination int) ([]int, int) {
 			path = append([]int{nodeId}, path...)
 		}
 	}
-	return path, length
+	return path, length, pqPops
 }
