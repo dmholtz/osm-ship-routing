@@ -42,7 +42,19 @@ func BidirectionalAlt(g Graph, landmarkDistancesCollection []LandmarkDistances, 
 
 			if dijkstraItemsBackward[successor] != nil && dijkstraItemsBackward[successor].settled {
 				// improvement by Kwa: An admissible bidirectional staged heuristic search algorithm
-				//continue
+				if dijkstraItemsForward[successor] == nil {
+					newDistance := forwardPqItem.distance + edge.Distance
+					newPriority := newDistance + alt_heuristic(landmarkDistancesCollection, successor, destination)
+					pqItem := AStarPriorityQueueItem{itemId: successor, priority: newPriority, distance: newDistance, predecessor: forwardNodeId, index: -1}
+					dijkstraItemsForward[successor] = &pqItem
+					//heap.Push(&pqForward, &pqItem)
+				}
+				if x := dijkstraItemsBackward[successor]; x != nil && dijkstraItemsForward[forwardNodeId].distance+edge.Distance+x.distance < mu {
+					mu = dijkstraItemsForward[forwardNodeId].distance + edge.Distance + x.distance
+					dijkstraItemsForward[successor].predecessor = forwardNodeId
+					middleNodeId = successor
+				}
+				continue
 			}
 			if dijkstraItemsForward[successor] == nil {
 				newDistance := forwardPqItem.distance + edge.Distance
@@ -69,7 +81,19 @@ func BidirectionalAlt(g Graph, landmarkDistancesCollection []LandmarkDistances, 
 
 			if mu >= math.MaxInt && dijkstraItemsForward[successor] != nil && dijkstraItemsForward[successor].settled {
 				// improvement by Kwa: An admissible bidirectional staged heuristic search algorithm
-				//continue
+				if dijkstraItemsBackward[successor] == nil {
+					newDistance := backwardPqItem.distance + edge.Distance
+					newPriority := newDistance + alt_heuristic(landmarkDistancesCollection, successor, origin)
+					pqItem := AStarPriorityQueueItem{itemId: successor, priority: newPriority, distance: newDistance, predecessor: backwardNodeId, index: -1}
+					dijkstraItemsBackward[successor] = &pqItem
+					//heap.Push(&pqBackward, &pqItem)
+				}
+				if x := dijkstraItemsForward[successor]; x != nil && dijkstraItemsBackward[backwardNodeId].distance+edge.Distance+x.distance < mu {
+					mu = dijkstraItemsBackward[backwardNodeId].distance + edge.Distance + x.distance
+					dijkstraItemsBackward[successor].predecessor = backwardNodeId
+					middleNodeId = successor
+				}
+				continue
 			}
 			if dijkstraItemsBackward[successor] == nil {
 				newDistance := backwardPqItem.distance + edge.Distance
