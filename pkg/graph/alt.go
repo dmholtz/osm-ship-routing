@@ -14,7 +14,7 @@ func alt_heuristic(landmarkDistancesCollection []LandmarkDistances, from NodeId,
 	upper_bound := 0
 	for _, landmark := range landmarkDistancesCollection {
 		upper_bound = max(upper_bound, landmark.DistancesFrom[to]-landmark.DistancesFrom[from])
-		upper_bound = max(upper_bound, landmark.DistancesTo[from]-landmark.DistancesFrom[to])
+		upper_bound = max(upper_bound, landmark.DistancesTo[from]-landmark.DistancesTo[to])
 	}
 	return upper_bound
 }
