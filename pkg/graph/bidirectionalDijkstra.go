@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-func BidirectionalDijkstra(g Graph, origin, destination int) ([]int, int) {
+func BidirectionalDijkstra(g Graph, origin, destination int) ([]int, int, int) {
 	// reference: https://www.homepages.ucl.ac.uk/~ucahmto/math/2020/05/30/bidirectional-dijkstra.html
 
 	dijkstraItemsForward := make([]*PriorityQueueItem, g.NodeCount(), g.NodeCount())
@@ -27,12 +27,14 @@ func BidirectionalDijkstra(g Graph, origin, destination int) ([]int, int) {
 	mu := math.MaxInt // will contain the shortest distance once the loop terminates
 	middleNodeId := 0
 
+	pqPops := 0
 	// works only on undirected graphs
 	for len(pqForward) > 0 && len(pqBackward) > 0 {
 		forwardPqItem := heap.Pop(&pqForward).(*PriorityQueueItem)
 		forwardNodeId := forwardPqItem.itemId
 		backwardPqItem := heap.Pop(&pqBackward).(*PriorityQueueItem)
 		backwardNodeId := backwardPqItem.itemId
+		pqPops += 2
 
 		// forward search
 		for _, edge := range g.GetHalfEdgesFrom(forwardNodeId) {
@@ -106,5 +108,5 @@ func BidirectionalDijkstra(g Graph, origin, destination int) ([]int, int) {
 		}
 	}
 
-	return path, length
+	return path, length, pqPops
 }

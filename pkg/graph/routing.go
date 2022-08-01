@@ -44,7 +44,7 @@ func (sr ShipRouter) closestNodes(p1, p2 geo.Point) (n1, n2 int) {
 
 func (sr ShipRouter) ComputeRoute(origin, destination geo.Point) (route Route) {
 	originNode, desdestinationNode := sr.closestNodes(origin, destination)
-	nodePath, length := BidirectionalDijkstra(sr.g, originNode, desdestinationNode)
+	nodePath, length, _ := BidirectionalDijkstra(sr.g, originNode, desdestinationNode)
 
 	if length > -1 {
 		// shortest path exists
