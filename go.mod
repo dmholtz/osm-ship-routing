@@ -10,6 +10,7 @@ require (
 
 require (
 	github.com/datadog/czlib v0.0.0-20160811164712-4bc9a24e37f2 // indirect
+	github.com/dmholtz/graffiti v0.3.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/paulmach/protoscan v0.2.1 // indirect
 )

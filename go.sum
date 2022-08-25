@@ -4,6 +4,8 @@ github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/datadog/czlib v0.0.0-20160811164712-4bc9a24e37f2 h1:ISaMhBq2dagaoptFGUyywT5SzpysCbHofX3sCNw1djo=
 github.com/datadog/czlib v0.0.0-20160811164712-4bc9a24e37f2/go.mod h1:2yDaWzisHKoQoxm+EU4YgKBaD7g1M0pxy7THWG44Lro=
+github.com/dmholtz/graffiti v0.3.0 h1:9kyg/OcczyDw0exLiJTkTldM6t7E6yZdtCq6oibl6lA=
+github.com/dmholtz/graffiti v0.3.0/go.mod h1:3DoDEpS64ISWhOFrJJVLPfJdNeF22NoY1GNkBnQv5Hc=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/gogo/protobuf v1.3.0/go.mod h1:SlYgWuQ5SjCEi6WLHjHCa1yvBfUnHcTbrrZtXPKa29o=

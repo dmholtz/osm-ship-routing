@@ -11,16 +11,30 @@ package main
 
 import (
 	"log"
+	"math"
 	"net/http"
+
+	sp "github.com/dmholtz/graffiti/algorithms/shortest_path"
+	io "github.com/dmholtz/graffiti/examples/io"
+	g "github.com/dmholtz/graffiti/graph"
 
 	server "github.com/dmholtz/osm-ship-routing/pkg/server/openapi_server"
 )
 
-const fileName = "graphs/ocean_equi_4.fmi"
+const graphFile = "graphs/ocean_equi_4.fmi"
 
 func main() {
-	log.Printf("Loading graph '%s' into memory", fileName)
-	DefaultApiService := server.NewDefaultApiService(fileName)
+
+	log.Printf("Loading graph from file %s ...\n", graphFile)
+
+	falg128 := io.NewAdjacencyListFromFmi("graphs/ocean_equi_4_grid_arcflags128.fmi", io.ParsePartGeoPoint, io.ParseLargeFlaggedHalfEdge)
+	faag128 := g.NewAdjacencyArrayFromGraph[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]](falg128)
+
+	log.Printf("Building router ...\n")
+
+	biArcflag128Router := sp.BidirectionalArcFlagRouter[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int], int]{Graph: faag128, Transpose: faag128, MaxInitializerValue: math.MaxInt}
+
+	DefaultApiService := &server.DefaultApiService{Graph: faag128, Router: biArcflag128Router}
 	DefaultApiController := server.NewDefaultApiController(DefaultApiService)
 
 	router := server.NewRouter(DefaultApiController)

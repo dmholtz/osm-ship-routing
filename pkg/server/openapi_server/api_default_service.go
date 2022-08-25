@@ -4,45 +4,58 @@ package openapi_server
 
 import (
 	"context"
+	"math"
 	"net/http"
 
-	"github.com/dmholtz/osm-ship-routing/pkg/geometry"
-	"github.com/dmholtz/osm-ship-routing/pkg/graph"
+	sp "github.com/dmholtz/graffiti/algorithms/shortest_path"
+	heur "github.com/dmholtz/graffiti/examples/heuristics"
+	g "github.com/dmholtz/graffiti/graph"
 )
 
 // DefaultApiService is a service that implements the logic for the DefaultApiServicer
 // This service should implement the business logic for every endpoint for the DefaultApi API.
 // Include any external packages or services that will be required by this service.
 type DefaultApiService struct {
-	shipRouter *graph.ShipRouter
-}
-
-// NewDefaultApiService creates a default api service
-func NewDefaultApiService(graphFile string) DefaultApiServicer {
-	g := graph.NewAdjacencyArrayFromFmi(graphFile)
-	sr := graph.NewShipRouter(g)
-	return &DefaultApiService{shipRouter: sr}
+	Graph  g.Graph[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]]
+	Router sp.Router[int]
 }
 
 // ComputeRoute - Compute a new route
 func (s *DefaultApiService) ComputeRoute(ctx context.Context, routeRequest RouteRequest) (ImplResponse, error) {
-	origin := geometry.NewPoint(float64(routeRequest.Origin.Lat), float64(routeRequest.Origin.Lon))
-	destination := geometry.NewPoint(float64(routeRequest.Destination.Lat), float64(routeRequest.Destination.Lon))
+	origin := g.PartGeoPoint{GeoPoint: g.GeoPoint{Lat: float64(routeRequest.Origin.Lat), Lon: float64(routeRequest.Origin.Lon)}}
+	destination := g.PartGeoPoint{GeoPoint: g.GeoPoint{Lat: float64(routeRequest.Destination.Lat), Lon: float64(routeRequest.Destination.Lon)}}
 
-	route := s.shipRouter.ComputeRoute(*origin, *destination)
+	source := findClosestNode(s.Graph, origin)      // find closest source node
+	target := findClosestNode(s.Graph, destination) // find closest target node
+
+	shortestPathResult := s.Router.Route(source, target, false)
 
 	routeResult := RouteResult{Origin: routeRequest.Origin, Destination: routeRequest.Destination}
-	if route.Exists {
+	if shortestPathResult.Length < math.MaxInt {
 		routeResult.Reachable = true
 		waypoints := make([]Point, 0)
-		for _, waypoint := range route.Waypoints {
-			p := Point{Lat: float32(waypoint.Lat()), Lon: float32(waypoint.Lon())}
+		for _, nodeId := range shortestPathResult.Path {
+			geoPoint := s.Graph.GetNode(nodeId)
+			p := Point{Lat: float32(geoPoint.Lat), Lon: float32(geoPoint.Lon)}
 			waypoints = append(waypoints, p)
 		}
-		routeResult.Path = Path{Length: int32(route.Length), Waypoints: waypoints}
+		routeResult.Path = Path{Length: int32(shortestPathResult.Length), Waypoints: waypoints}
 	} else {
 		routeResult.Reachable = false
 	}
 
 	return Response(http.StatusOK, routeResult), nil
+}
+
+func findClosestNode(graph g.Graph[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]], node g.PartGeoPoint) g.NodeId {
+	minDist := math.MaxInt
+	var closestNode g.NodeId
+	for nodeId := 0; nodeId < graph.NodeCount(); nodeId++ {
+		other := graph.GetNode(nodeId)
+		if dist := heur.Haversine(node.GeoPoint, other.GeoPoint); dist < minDist {
+			minDist = dist
+			closestNode = nodeId
+		}
+	}
+	return closestNode
 }
