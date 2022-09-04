@@ -21,13 +21,13 @@ import (
 	server "github.com/dmholtz/osm-ship-routing/pkg/server/openapi_server"
 )
 
-const graphFile = "graphs/ocean_equi_4.fmi"
+const graphFile = "graphs/ocean_equi_4_grid_arcflags128.fmi"
 
 func main() {
 
 	log.Printf("Loading graph from file %s ...\n", graphFile)
 
-	falg128 := io.NewAdjacencyListFromFmi("graphs/ocean_equi_4_grid_arcflags128.fmi", io.ParsePartGeoPoint, io.ParseLargeFlaggedHalfEdge)
+	falg128 := io.NewAdjacencyListFromFmi(graphFile, io.ParsePartGeoPoint, io.ParseLargeFlaggedHalfEdge)
 	faag128 := g.NewAdjacencyArrayFromGraph[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]](falg128)
 
 	log.Printf("Building router ...\n")
