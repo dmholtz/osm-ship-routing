@@ -3,7 +3,7 @@ module github.com/dmholtz/osm-ship-routing
 go 1.18
 
 require (
-	github.com/dmholtz/graffiti v0.3.0
+	github.com/dmholtz/graffiti v1.0.0
 	github.com/gorilla/mux v1.8.0
 	github.com/paulmach/orb v0.5.0
 	github.com/paulmach/osm v0.3.0
