@@ -3,4 +3,4 @@
 *.jar
 *.fmi
 graphs/*.fmi
-!graphs/ocean_equi_4.fmi
+!graphs/ocean_equi_4_grid_arcflags128.fmi
