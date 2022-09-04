@@ -3,8 +3,7 @@
 Using is Docker is the fastest way to get the backend of the OSM-Ship-Routing service running.
 Beside that, an installation from source gives you access to every component of this project including:
 
-- OSM-Server (backend of the OSM-Ship-Routing service)Coastline Merger
-- Dijkstra Benchmarks
+- OSM-Server (backend of the OSM-Ship-Routing service)
 - Grid Graph Builder
 - Cloastline Merger
 
@@ -67,15 +66,6 @@ Available Parameters:
 #### Output
 
 The output is written to a file in the `fmi` format.
-
-### Run Dijkstra Benchmarks
-
-```bash
-go run cmd/dijkstra/main.go
-```
-
-Runs 100 random queries and reports the average elapsed time per query.
-By default, a grid graph with equidistributed nodes on the planet's surface, each having at most four outgoing edges is used.
 
 ### Start OSM-Server
 

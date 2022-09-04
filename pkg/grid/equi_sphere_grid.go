@@ -111,7 +111,7 @@ func (esg *EquiSphereGrid) landWaterTest(polygons []geo.Polygon) {
 	for _, ring := range esg.points {
 		for _, point := range ring {
 			go func(idx int, point geo.Point) {
-				if point.Lat() < -84 {
+				if point.Lat() < -86 {
 					// hard-coded: make south pole continent
 					esg.isWater[idx] = false
 				} else {

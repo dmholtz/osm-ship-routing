@@ -92,7 +92,7 @@ func (ssg *SimpleSphereGrid) landWaterTest(polygons []geo.Polygon) {
 	wg.Add(numPoints)
 	for idx, point := range ssg.points {
 		go func(idx int, point geo.Point) {
-			if point.Lat() < -84 {
+			if point.Lat() < -86 {
 				// hard-coded: make south pole continent
 				ssg.isWater[idx] = false
 			} else {
