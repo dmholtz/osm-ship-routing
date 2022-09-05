@@ -1,60 +1,80 @@
 # OSM-Ship-Routing
 
-Using is Docker is the fastest way to get the backend of the OSM-Ship-Routing service running.
+Using Docker is the fastest way to get the backend of the OSM-Ship-Routing service running.
 Beside that, an installation from source gives you access to every component of this project including:
 
-- OSM-Server (backend of the OSM-Ship-Routing service)
+- OSM-Ship-Routing server backend
 - Grid Graph Builder
-- Cloastline Merger
+- Coastline Merger
 
-## Setup Using Docker
+## Setup
 
-1. Pull the image from [Dockerhub](https://hub.docker.com/repository/docker/dmholtz/osm-ship-routing): `docker pull dmholtz/osm-ship-routing:<TAG>`
-2. Start a container: `docker run -p 8081:8081 --name osm-server dmholtz/osm-ship-routing`
+Docker is the fastest way to deploy the OSM-Ship-Routing server backend on your system.
+The other components require a installation from source.
 
-Note that `<TAG>` needs to be replaced by a valid tag. Please find all available tags on [Dockerhub](https://hub.docker.com/repository/docker/dmholtz/osm-ship-routing).
-Tag `1.0.0` refers to the first submission and tag `latest` referst to the most recent release on Dockerhub.
+### Docker
 
-## Installation from Source
+Pull the latest image from [Dockerhub](https://hub.docker.com/repository/docker/dmholtz/osm-ship-routing). Then run the backend server:
 
-### Prerequisites
+`docker run -p 8081:8081 --name osm-server dmholtz:/osm-ship-routing:v2.0.2`
 
-The `osm-ship-routing` service is written in [Go](https://go.dev/).
-Installing and running requires an installation of the Go Programming Language `v1.18` or later.
+A container with name `osm-server` is started and the routing service is exposed at port 8081.
 
-### Setup
+### Installation from Source
 
-1. Clone the repository
-2. Run `go mod download`
-3. Run `go build -o <BINARY> <PATH_TO_MAIN.GO>` to build a binary for a specified go file.
+#### Prerequisites
 
-### Merge Coastlines
+- Go 1.18 or later
 
-```bash
-go run cmd/merger/main.go
-```
+#### Merge Coastlines
 
 Extracts coastline segments from a `.pbf` file and merges them to closed coastlines.
 The output (i.e. the list of polygons) is either written to the GeoJSON file or to a normal JSON file, which is less verbose than GeoJSON and which we call PolyJSON.
 
-### Graph Builder
-
 ```bash
-go run cmd/graph-builder/main.go
+go mod tidy
+go run cmd/merger/main.go
 ```
+
+#### Graph Builder
 
 Builds a spherical grid graph and implements the point-in-polygon test to check which grid points are in the ocean and will thus become nodes in the graph.
 Two types of grids are supported:
 
-#### Simple Grid
+- Simple Grid
+- Equidistributed Grid
+
+The graph is written to a file in the `.fmi` format.
+
+```bash
+go mod tidy
+go run cmd/graph-builder/main.go
+```
+
+#### OSM-Ship-Routing backend server
+
+Starts a HTTP server at port 8081.
+By default, a grid graph with equidistributed nodes on the planet's surface, each having at most four outgoing edges is used.
+Routing is done by the `BidirectionalArcFlagRouter` from the [graffiti project](https://github.com/dmholtz/graffiti).
+
+```bash
+go mod tidy
+go run cmd/server/main.go
+```
+
+## Customization
+
+The graph builder supports two grid types and can be customized as follows:
+
+### Simple Grid
 
 Distributes nodes equally along the latidue and longitude axis.
 
 Available Parameters:
 
-- density: The overall number of grid points will be $2*density^2$.
+- density: The overall number of grid points will be $2 \cdot density^2$.
 
-#### Equidistributed Grid
+### Equidistributed Grid
 
 Distributes nodes equally on the planets surface.
 
@@ -62,16 +82,3 @@ Available Parameters:
 
 - nTarget: Number of points to distribute on the surface. The actual number of points may vary slightly.
 - meshType: Defines the maximum number of outgoing edges per node. One can choose between four and six neighbors and default value is four neighbors.
-
-#### Output
-
-The output is written to a file in the `fmi` format.
-
-### Start OSM-Server
-
-```bash
-go run cmd/server/main.go
-```
-
-Starts a HTTP server at port 8081.
-By default, a grid graph with equidistributed nodes on the planet's surface, each having at most four outgoing edges is used.
