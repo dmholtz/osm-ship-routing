@@ -1,7 +1,9 @@
 # OSM-Ship-Routing
 
-Using Docker is the fastest way to get the backend of the OSM-Ship-Routing service running.
-Beside that, an installation from source gives you access to every component of this project including:
+OSM-Ship-Routing provides the backend of a ship routing service using OSM data. This repository implements the backend server for the [interactive routing frontend](https://github.com/dmholtz/osm-ship-routing-gui).
+Moreover, it contains a component for merging OSM coastlines into closed polygons as well as a grid graph builder for the oceans.
+
+Components:
 
 - OSM-Ship-Routing server backend
 - Grid Graph Builder
