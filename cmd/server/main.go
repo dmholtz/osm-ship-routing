@@ -28,6 +28,9 @@ func routerId(name string) string {
 
 // Reports the list of available ship routers
 func routers(w http.ResponseWriter, req *http.Request) {
+	// allow origin
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+
 	type routerDescription struct {
 		Id   string `json:"id"`
 		Name string `json:"name"`
