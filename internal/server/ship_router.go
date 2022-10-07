@@ -36,7 +36,7 @@ func (sr ShipRouter1[N, E]) ProcessRequest(req RouteRequest, showSearchSpace boo
 	var path Path
 	if res.Length > 0 {
 		waypoints := make([]Point, 0)
-		for nodeId := range res.Path {
+		for _, nodeId := range res.Path {
 			node := sr.Graph.GetNode(nodeId)
 			waypoints = append(waypoints, getPoint(node))
 		}
@@ -46,7 +46,7 @@ func (sr ShipRouter1[N, E]) ProcessRequest(req RouteRequest, showSearchSpace boo
 	var searchSpace []Point
 	if showSearchSpace {
 		searchSpace = make([]Point, 0)
-		for nodeId := range res.SearchSpace {
+		for _, nodeId := range res.SearchSpace {
 			node := sr.Graph.GetNode(nodeId)
 			searchSpace = append(searchSpace, getPoint(node))
 		}

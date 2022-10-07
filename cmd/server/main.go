@@ -42,6 +42,9 @@ func routers(w http.ResponseWriter, req *http.Request) {
 
 // Computes a route using the respective ship router
 func computeRoute(w http.ResponseWriter, req *http.Request) {
+	// allow origin
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+
 	routerName := mux.Vars(req)["router"]
 
 	// filter out invalid or unavailable routers
