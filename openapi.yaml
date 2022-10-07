@@ -4,8 +4,22 @@ info:
   description: Access the global ship routing service via a RESTful API
   version: 0.0.1
 
+servers:
+  - url: http://localhost:8081
+    description: default server of the backend
+
 paths:
-  /routes:
+  /routers:
+    get:
+      summary: Get a list of available routers
+      responses:
+        '200':
+          description: List of available routers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouterList"
+  /routers/{router}:
     post:
       summary: Compute a new route
       operationId: computeRoute
@@ -22,9 +36,24 @@ paths:
           content:
             application/json:
               schema: 
-                $ref: "#/components/schemas/RouteResult"          
+                $ref: "#/components/schemas/RouteResult"
+
 components:
   schemas:
+    RouterList:
+      description: |
+        List of routers
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+        required:
+          - id
+          - name
     Point:
       description: |
         Object representation of a point in the Geographic Coordinate System (GCS).
@@ -32,7 +61,7 @@ components:
         lat:
           type: number
           description: unit degree
-          minimum: -90.00000000001
+          minimum: -90
           maximum: 90
         lon:
           type: number
@@ -57,19 +86,24 @@ components:
     RouteResult:
       type: object
       properties:
-        origin:
-          $ref: "#/components/schemas/Point"
-        destination:
-          $ref: "#/components/schemas/Point"
-        reachable:
+        exists:
           type: boolean
           description: States whether a route from origin to destination exists
         path:
           $ref: "#/components/schemas/Path"
+        time:
+          description: Time required to compute the shortest path.
+          type: number
+          minimum: 0
+        search_space:
+          type: array
+          description: |
+            The search space is a list of points being ordered by the time a point (node) has been settled by the algorithm.
+          items:
+            $ref: "#/components/schemas/Point"
       required:
-        - origin
-        - destination
-        - reachable
+        - exists
+        - time
     Path:
       type: object
       description: A path is described by sequence of points as well as its total length.
