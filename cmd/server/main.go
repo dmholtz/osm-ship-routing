@@ -90,13 +90,23 @@ func main() {
 	falg128 := io.NewAdjacencyListFromFmi(graphFile, io.ParsePartGeoPoint, io.ParseLargeFlaggedHalfEdge)
 	faag128 := g.NewAdjacencyArrayFromGraph[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]](falg128)
 
+	log.Println("Compute ALT heuristic...")
+	landmarks := sp.UniformLandmarks[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]](faag128, 16)
+	alt16 := sp.NewAltHeurisitc[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int], int](faag128, faag128, landmarks[:16])
+
 	log.Printf("Building router ...\n")
 
 	dijkstraRouter := sp.DijkstraRouter[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int], int]{Graph: faag128}
+	biDijkstraRouter := sp.BiDijkstraRouter[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int], int]{Graph: faag128, Transpose: faag128, MaxInitializerValue: math.MaxInt}
+	arcflag128Router := sp.ArcFlagRouter[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int], int]{Graph: faag128}
 	biArcflag128Router := sp.BidirectionalArcFlagRouter[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int], int]{Graph: faag128, Transpose: faag128, MaxInitializerValue: math.MaxInt}
+	altRouter := sp.AStarRouter[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int], int]{Graph: faag128, Heuristic: alt16}
 
 	shipRouterCollection[routerId(dijkstraRouter.String())] = server.ShipRouter1[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]]{Graph: faag128, Router: dijkstraRouter}
+	shipRouterCollection[routerId(biDijkstraRouter.String())] = server.ShipRouter1[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]]{Graph: faag128, Router: biDijkstraRouter}
+	shipRouterCollection[routerId(arcflag128Router.String())] = server.ShipRouter1[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]]{Graph: faag128, Router: arcflag128Router}
 	shipRouterCollection[routerId(biArcflag128Router.String())] = server.ShipRouter1[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]]{Graph: faag128, Router: biArcflag128Router}
+	shipRouterCollection[routerId(altRouter.String())] = server.ShipRouter1[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]]{Graph: faag128, Router: altRouter}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/routers", routers).Methods("GET")
