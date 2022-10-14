@@ -17,6 +17,7 @@ import (
 )
 
 const graphFile = "graphs/ocean_equi_4_grid_arcflags128.fmi"
+const towLevelGraphFile = "graphs/ocean_equi_4_grid_arcflags32_32.fmi"
 
 var shipRouterCollection map[string]server.ShipRouter = make(map[string]server.ShipRouter)
 
@@ -90,6 +91,11 @@ func main() {
 	falg128 := io.NewAdjacencyListFromFmi(graphFile, io.ParsePartGeoPoint, io.ParseLargeFlaggedHalfEdge)
 	faag128 := g.NewAdjacencyArrayFromGraph[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]](falg128)
 
+	log.Printf("Loading graph from file %s ...\n", towLevelGraphFile)
+
+	falg32 := io.NewAdjacencyListFromFmi(towLevelGraphFile, io.Parse2LPartGeoPoint, io.Parse2LFlaggedHalfEdge)
+	faag32 := g.NewAdjacencyArrayFromGraph[g.TwoLevelPartGeoPoint, g.TwoLevelFlaggedHalfEdge[int, uint64, uint64]](falg32)
+
 	log.Println("Compute ALT heuristic...")
 	landmarks := sp.UniformLandmarks[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]](faag128, 16)
 	alt16 := sp.NewAltHeurisitc[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int], int](faag128, faag128, landmarks[:16])
@@ -100,13 +106,17 @@ func main() {
 	biDijkstraRouter := sp.BiDijkstraRouter[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int], int]{Graph: faag128, Transpose: faag128, MaxInitializerValue: math.MaxInt}
 	arcflag128Router := sp.ArcFlagRouter[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int], int]{Graph: faag128}
 	biArcflag128Router := sp.BidirectionalArcFlagRouter[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int], int]{Graph: faag128, Transpose: faag128, MaxInitializerValue: math.MaxInt}
+	twoLevelArcflagRouter := sp.TwoLevelArcFlagRouter[g.TwoLevelPartGeoPoint, g.TwoLevelFlaggedHalfEdge[int, uint64, uint64], int]{Graph: faag32}
 	altRouter := sp.AStarRouter[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int], int]{Graph: faag128, Heuristic: alt16}
+	arcflagAltRouter := sp.ArcFlagAStarRouter[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int], int]{Graph: faag128, Transpose: faag128, Heuristic: alt16}
 
 	shipRouterCollection[routerId(dijkstraRouter.String())] = server.ShipRouter1[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]]{Graph: faag128, Router: dijkstraRouter}
 	shipRouterCollection[routerId(biDijkstraRouter.String())] = server.ShipRouter1[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]]{Graph: faag128, Router: biDijkstraRouter}
 	shipRouterCollection[routerId(arcflag128Router.String())] = server.ShipRouter1[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]]{Graph: faag128, Router: arcflag128Router}
 	shipRouterCollection[routerId(biArcflag128Router.String())] = server.ShipRouter1[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]]{Graph: faag128, Router: biArcflag128Router}
+	shipRouterCollection[routerId(twoLevelArcflagRouter.String())] = server.ShipRouter1[g.TwoLevelPartGeoPoint, g.TwoLevelFlaggedHalfEdge[int, uint64, uint64]]{Graph: faag32, Router: twoLevelArcflagRouter}
 	shipRouterCollection[routerId(altRouter.String())] = server.ShipRouter1[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]]{Graph: faag128, Router: altRouter}
+	shipRouterCollection[routerId(arcflagAltRouter.String())] = server.ShipRouter1[g.PartGeoPoint, g.LargeFlaggedHalfEdge[int]]{Graph: faag128, Router: arcflagAltRouter}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/routers", routers).Methods("GET")
